@@ -2,6 +2,11 @@
 
 import { useMemo, useState } from "react";
 
+import { PrimaryButton, SecondaryButton } from "../../../components/ui/button";
+import { Card } from "../../../components/ui/card";
+import { PageHeader } from "../../../components/ui/page-header";
+import { SectionTitle } from "../../../components/ui/section-title";
+
 type SmartFields = {
   specific: string;
   measurable: string;
@@ -34,7 +39,7 @@ type GenerateActionsResponse = {
 };
 
 const inputClasses =
-  "w-full border border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-blue-500";
+  "w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 transition";
 
 const initialSmart: SmartFields = {
   specific: "",
@@ -44,11 +49,23 @@ const initialSmart: SmartFields = {
   timeBased: "",
 };
 
-const stepTitles = [
-  "Step 1 · Describe Your Goal", 
-  "Step 2 · Clarifying Questions", 
-  "Step 3 · SMART Breakdown", 
-  "Step 4 · Action Suggestions",
+const stepDetails = [
+  {
+    title: "Describe your goal",
+    description: "Share the challenge or ambition you want to shape into an actionable plan.",
+  },
+  {
+    title: "Clarifying questions",
+    description: "Respond to tailored prompts to sharpen context before planning.",
+  },
+  {
+    title: "SMART breakdown",
+    description: "Refine the goal across Specific, Measurable, Achievable, Relevant, and Time-bound.",
+  },
+  {
+    title: "Action suggestions",
+    description: "Review recommended steps and choose timelines that work for you.",
+  },
 ];
 
 export default function NewGoalPage() {
@@ -62,7 +79,7 @@ export default function NewGoalPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const currentTitle = useMemo(() => stepTitles[step - 1] ?? "Goal Setup", [step]);
+  const currentTitle = useMemo(() => stepDetails[step - 1]?.title ?? "Goal setup", [step]);
 
   const handleBack = () => {
     setError(null);
@@ -172,7 +189,7 @@ export default function NewGoalPage() {
         return (
           <div className="space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-800" htmlFor="user-input">
+              <label className="text-sm font-medium text-neutral-800" htmlFor="user-input">
                 What goal or problem are you working on?
               </label>
               <textarea
@@ -184,14 +201,10 @@ export default function NewGoalPage() {
               />
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-slate-600">Step 1 of 4</span>
-              <button
-                className="bg-blue-600 text-white rounded-xl px-4 py-2 shadow hover:bg-blue-700 disabled:opacity-50"
-                onClick={handleGenerateQuestions}
-                disabled={loading}
-              >
+              <p className="text-sm text-neutral-600">Step 1 of 4</p>
+              <PrimaryButton onClick={handleGenerateQuestions} disabled={loading}>
                 Next
-              </button>
+              </PrimaryButton>
             </div>
           </div>
         );
@@ -200,11 +213,11 @@ export default function NewGoalPage() {
           <div className="space-y-6">
             <div className="space-y-4">
               {questions.length === 0 ? (
-                <p className="text-slate-700">No questions yet. Try generating again.</p>
+                <p className="text-sm text-neutral-700">No questions yet. Try generating again.</p>
               ) : (
                 questions.map((question, index) => (
                   <div className="space-y-2" key={question}>
-                    <p className="text-sm font-medium text-slate-800">{question}</p>
+                    <p className="text-sm font-medium text-neutral-800">{question}</p>
                     <textarea
                       className={`${inputClasses} min-h-[120px]`}
                       placeholder="Your answer..."
@@ -221,21 +234,13 @@ export default function NewGoalPage() {
                 ))
               )}
             </div>
-            <div className="flex items-center justify-between">
-              <button
-                className="text-sm text-slate-600 hover:text-slate-900"
-                type="button"
-                onClick={handleBack}
-              >
+            <div className="flex items-center justify-between gap-3">
+              <SecondaryButton type="button" onClick={handleBack}>
                 Back
-              </button>
-              <button
-                className="bg-blue-600 text-white rounded-xl px-4 py-2 shadow hover:bg-blue-700 disabled:opacity-50"
-                onClick={handleGenerateSmart}
-                disabled={loading}
-              >
-                Next: SMART Breakdown
-              </button>
+              </SecondaryButton>
+              <PrimaryButton onClick={handleGenerateSmart} disabled={loading}>
+                Next: SMART breakdown
+              </PrimaryButton>
             </div>
           </div>
         );
@@ -244,7 +249,7 @@ export default function NewGoalPage() {
           <div className="space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-800" htmlFor="goal-title">
+                <label className="text-sm font-medium text-neutral-800" htmlFor="goal-title">
                   Goal title
                 </label>
                 <input
@@ -264,7 +269,7 @@ export default function NewGoalPage() {
                 ] as const
               ).map(({ key, label }) => (
                 <div className="space-y-2" key={key}>
-                  <label className="text-sm font-medium text-slate-800" htmlFor={key}>
+                  <label className="text-sm font-medium text-neutral-800" htmlFor={key}>
                     {label}
                   </label>
                   <textarea
@@ -276,21 +281,13 @@ export default function NewGoalPage() {
                 </div>
               ))}
             </div>
-            <div className="flex items-center justify-between">
-              <button
-                className="text-sm text-slate-600 hover:text-slate-900"
-                type="button"
-                onClick={handleBack}
-              >
+            <div className="flex items-center justify-between gap-3">
+              <SecondaryButton type="button" onClick={handleBack}>
                 Back
-              </button>
-              <button
-                className="bg-blue-600 text-white rounded-xl px-4 py-2 shadow hover:bg-blue-700 disabled:opacity-50"
-                onClick={handleGenerateActions}
-                disabled={loading}
-              >
-                Next: Action Ideas
-              </button>
+              </SecondaryButton>
+              <PrimaryButton onClick={handleGenerateActions} disabled={loading}>
+                Next: Action ideas
+              </PrimaryButton>
             </div>
           </div>
         );
@@ -299,15 +296,12 @@ export default function NewGoalPage() {
           <div className="space-y-6">
             <div className="space-y-4">
               {actions.length === 0 ? (
-                <p className="text-slate-700">No actions yet. Try generating again.</p>
+                <p className="text-sm text-neutral-700">No actions yet. Try generating again.</p>
               ) : (
                 actions.map((action, index) => (
-                  <div
-                    className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3"
-                    key={`${action.title}-${index}`}
-                  >
+                  <Card className="space-y-4" key={`${action.title}-${index}`}>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-800" htmlFor={`action-title-${index}`}>
+                      <label className="text-sm font-medium text-neutral-800" htmlFor={`action-title-${index}`}>
                         Action title
                       </label>
                       <input
@@ -324,7 +318,7 @@ export default function NewGoalPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-800" htmlFor={`action-description-${index}`}>
+                      <label className="text-sm font-medium text-neutral-800" htmlFor={`action-description-${index}`}>
                         Description
                       </label>
                       <textarea
@@ -342,7 +336,7 @@ export default function NewGoalPage() {
                     </div>
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-800" htmlFor={`recommended-${index}`}>
+                        <label className="text-sm font-medium text-neutral-800" htmlFor={`recommended-${index}`}>
                           Suggested timeline
                         </label>
                         <input
@@ -353,7 +347,7 @@ export default function NewGoalPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-800" htmlFor={`deadline-${index}`}>
+                        <label className="text-sm font-medium text-neutral-800" htmlFor={`deadline-${index}`}>
                           Your deadline
                         </label>
                         <input
@@ -371,26 +365,17 @@ export default function NewGoalPage() {
                         />
                       </div>
                     </div>
-                  </div>
+                  </Card>
                 ))
               )}
             </div>
-            <div className="flex items-center justify-between">
-              <button
-                className="text-sm text-slate-600 hover:text-slate-900"
-                type="button"
-                onClick={handleBack}
-              >
+            <div className="flex items-center justify-between gap-3">
+              <SecondaryButton type="button" onClick={handleBack}>
                 Back
-              </button>
-              <button
-                className="bg-blue-600 text-white rounded-xl px-4 py-2 shadow hover:bg-blue-700 disabled:opacity-50"
-                type="button"
-                onClick={handleSave}
-                disabled={loading}
-              >
-                Review &amp; Save (console only)
-              </button>
+              </SecondaryButton>
+              <PrimaryButton type="button" onClick={handleSave} disabled={loading}>
+                Review &amp; save (console)
+              </PrimaryButton>
             </div>
           </div>
         );
@@ -400,24 +385,103 @@ export default function NewGoalPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10">
-      <div className="mx-auto flex max-w-5xl flex-col items-center gap-6">
-        <div className="w-full max-w-3xl rounded-2xl border bg-white p-6 shadow-md md:p-8">
-          <div className="space-y-4">
-            <div className="space-y-1">
-              <h1 className="text-3xl font-bold text-slate-900">Goal Setup</h1>
-              <p className="text-slate-600">Craft your goal with clarifying questions, SMART details, and guided actions.</p>
+    <main className="min-h-screen bg-neutral-50">
+      <div className="mx-auto max-w-5xl px-4 py-10 lg:px-6">
+        <PageHeader
+          title="Goal setup"
+          description="Follow the guided flow to clarify your objective and shape actionable steps."
+        />
+
+        <div className="grid gap-6 lg:grid-cols-[1.6fr,1fr]">
+          <Card className="space-y-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-2">
+                <p className="text-sm text-neutral-600">Step {step} of 4</p>
+                <p className="text-xl font-semibold text-neutral-900">{currentTitle}</p>
+                <p className="text-sm text-neutral-600">{stepDetails[step - 1]?.description}</p>
+              </div>
+              <SecondaryButton type="button" onClick={handleBack} disabled={step === 1}>
+                Back
+              </SecondaryButton>
             </div>
-            <div className="space-y-1">
-              <p className="text-xl font-semibold text-slate-900">{currentTitle}</p>
-              <p className="text-sm text-slate-600">Follow the steps to refine and plan your goal.</p>
-            </div>
+
             {error ? (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {error}
               </div>
             ) : null}
+
             {renderStepContent()}
+          </Card>
+
+          <div className="space-y-6">
+            <Card className="space-y-4">
+              <SectionTitle
+                title="Flow overview"
+                description="Track where you are in the journey."
+              />
+              <div className="space-y-3 text-sm text-neutral-700">
+                {stepDetails.map((item, index) => {
+                  const isActive = index + 1 === step;
+                  const isComplete = index + 1 < step;
+                  return (
+                    <div
+                      key={item.title}
+                      className="flex items-start justify-between rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3"
+                    >
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold text-neutral-800">{item.title}</p>
+                        <p className="text-sm text-neutral-600">{item.description}</p>
+                      </div>
+                      <span
+                        className={
+                          isComplete
+                            ? "text-xs font-medium text-green-600"
+                            : isActive
+                              ? "text-xs font-medium text-neutral-900"
+                              : "text-xs font-medium text-neutral-500"
+                        }
+                      >
+                        {isComplete ? "Done" : isActive ? "In progress" : "Pending"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+
+            <Card className="space-y-4">
+              <SectionTitle title="Current outline" description="Live snapshot of your entries." />
+              <div className="space-y-3 text-sm text-neutral-700">
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-neutral-800">Goal headline</p>
+                  <p className="text-sm text-neutral-600">
+                    {goalTitle || "Awaiting SMART breakdown"}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-neutral-800">SMART details</p>
+                  <div className="space-y-1">
+                    {(Object.entries(smart) as Array<[keyof SmartFields, string]>).map(([key, value]) => (
+                      <div className="flex items-start justify-between gap-4" key={key}>
+                        <span className="text-sm text-neutral-600 capitalize">{key}</span>
+                        <span className="text-sm text-neutral-800 text-right">
+                          {value || "Pending"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-neutral-800">Actions drafted</p>
+                  <p className="text-sm text-neutral-600">
+                    {actions.length > 0
+                      ? `${actions.length} action${actions.length === 1 ? "" : "s"} prepared`
+                      : "Pending generation"}
+                  </p>
+                </div>
+              </div>
+            </Card>
           </div>
         </div>
       </div>
