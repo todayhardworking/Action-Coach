@@ -186,11 +186,16 @@ export default function TestPage() {
         }),
       });
 
+      const responseBody = await response.json().catch(() => ({}));
+      const apiMessage =
+        (responseBody as { message?: string; error?: string }).message ||
+        (responseBody as { message?: string; error?: string }).error;
+
       if (!response.ok) {
-        throw new Error("Failed to save goal.");
+        throw new Error(apiMessage || "Failed to save goal.");
       }
 
-      setSuccessMessage("Goal saved to Firestore via API.");
+      setSuccessMessage(apiMessage || "Goal saved to Firestore via API.");
     } catch (fetchError) {
       setError(fetchError instanceof Error ? fetchError.message : "Unable to save goal.");
     } finally {
