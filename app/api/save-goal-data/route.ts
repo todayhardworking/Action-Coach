@@ -1,0 +1,125 @@
+import { NextResponse } from 'next/server';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { getAdminDb } from '../../../lib/firebaseAdmin';
+
+type SmartDetails = {
+  specific: string;
+  measurable: string;
+  achievable: string;
+  relevant: string;
+  timeBased: string;
+};
+
+type ActionItem = {
+  title: string;
+  deadline: string;
+};
+
+type SaveGoalRequest = {
+  userId?: string;
+  goalTitle?: string;
+  smart?: Partial<SmartDetails>;
+  actions?: ActionItem[];
+};
+
+function isValidSmart(smart: SmartDetails | undefined): smart is SmartDetails {
+  return (
+    typeof smart?.specific === 'string' &&
+    typeof smart?.measurable === 'string' &&
+    typeof smart?.achievable === 'string' &&
+    typeof smart?.relevant === 'string' &&
+    typeof smart?.timeBased === 'string' &&
+    smart.specific.trim().length > 0 &&
+    smart.measurable.trim().length > 0 &&
+    smart.achievable.trim().length > 0 &&
+    smart.relevant.trim().length > 0 &&
+    smart.timeBased.trim().length > 0
+  );
+}
+
+function isValidActions(actions: ActionItem[] | undefined): actions is ActionItem[] {
+  if (!Array.isArray(actions) || actions.length === 0) {
+    return false;
+  }
+
+  return actions.every(
+    (action) =>
+      typeof action?.title === 'string' &&
+      action.title.trim().length > 0 &&
+      typeof action?.deadline === 'string' &&
+      action.deadline.trim().length > 0
+  );
+}
+
+function parseDeadline(deadline: string): Date | null {
+  const parsed = new Date(deadline);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+export async function POST(request: Request) {
+  let body: SaveGoalRequest;
+
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 });
+  }
+
+  const userId = typeof body.userId === 'string' ? body.userId.trim() : '';
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized: userId is required.' }, { status: 403 });
+  }
+
+  const goalTitle = typeof body.goalTitle === 'string' ? body.goalTitle.trim() : '';
+  if (!goalTitle) {
+    return NextResponse.json({ error: 'goalTitle is required.' }, { status: 400 });
+  }
+
+  const smart = body.smart as SmartDetails | undefined;
+  if (!isValidSmart(smart)) {
+    return NextResponse.json({ error: 'SMART details are incomplete.' }, { status: 400 });
+  }
+
+  const actions = body.actions;
+  if (!isValidActions(actions)) {
+    return NextResponse.json({ error: 'At least one action with a title and deadline is required.' }, { status: 400 });
+  }
+
+  try {
+    const db = getAdminDb();
+    const targetDoc = await db.collection('targets').add({
+      title: goalTitle,
+      status: 'active',
+      userId,
+      smart,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+
+    const targetId = targetDoc.id;
+    const actionsCollection = db.collection('actions');
+
+    await Promise.all(
+      actions.map((action) => {
+        const deadlineDate = parseDeadline(action.deadline);
+
+        if (!deadlineDate) {
+          throw new Error('Invalid action deadline.');
+        }
+
+        return actionsCollection.add({
+          title: action.title.trim(),
+          deadline: Timestamp.fromDate(deadlineDate),
+          status: 'pending',
+          targetId,
+          userId,
+          createdAt: FieldValue.serverTimestamp(),
+        });
+      })
+    );
+
+    return NextResponse.json({ success: true, targetId });
+  } catch (error) {
+    console.error('Failed to save goal data.', { error });
+    return NextResponse.json({ error: 'Failed to save goal data.' }, { status: 500 });
+  }
+}
