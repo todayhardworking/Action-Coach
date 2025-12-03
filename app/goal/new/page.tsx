@@ -12,6 +12,7 @@ interface SmartBreakdown {
 
 interface ActionItem {
   title: string;
+  description: string;
   deadline: string;
 }
 
@@ -148,10 +149,16 @@ const GoalSetupPage = () => {
 
       if (Array.isArray(data.actions)) {
         setActions(
-          data.actions.map((action: { title?: string; recommendedDeadline?: string }, index: number) => ({
-            title: action?.title || `Action ${index + 1}`,
-            deadline: "",
-          })),
+          data.actions.map(
+            (
+              action: { title?: string; description?: string; recommendedDeadline?: string },
+              index: number,
+            ) => ({
+              title: action?.title || `Action ${index + 1}`,
+              description: action?.description || "",
+              deadline: action?.recommendedDeadline || "",
+            }),
+          ),
         );
       }
 
@@ -193,12 +200,16 @@ const GoalSetupPage = () => {
     setActions((prev) => prev.map((action, idx) => (idx === index ? { ...action, title: value } : action)));
   };
 
+  const handleActionDescriptionChange = (index: number, value: string) => {
+    setActions((prev) => prev.map((action, idx) => (idx === index ? { ...action, description: value } : action)));
+  };
+
   const handleActionDeadlineChange = (index: number, value: string) => {
     setActions((prev) => prev.map((action, idx) => (idx === index ? { ...action, deadline: value } : action)));
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 px-3 py-10 sm:px-4">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 px-4 py-10 sm:px-6">
       <div className="mx-auto max-w-3xl space-y-3 text-center sm:text-left">
         <h1 className="text-3xl font-bold text-gray-900">Set Up Your Goal</h1>
         <p className="text-sm text-gray-600">A calm, guided flow to refine your goal and actions—optimized for any screen.</p>
@@ -208,7 +219,7 @@ const GoalSetupPage = () => {
         {error ? <p className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}</p> : null}
 
         {step === 1 ? (
-          <div className="space-y-4 rounded-xl bg-white/80 p-6 shadow-md backdrop-blur">
+          <div className="space-y-5 rounded-xl bg-white/80 p-6 shadow-md backdrop-blur">
             <div className="space-y-2">
               <p className="text-xl font-semibold">Step 1 — Target / Problem</p>
               <p className="text-sm text-gray-600">
@@ -217,8 +228,8 @@ const GoalSetupPage = () => {
             </div>
 
             <textarea
-              className="w-full rounded-xl border border-gray-200 bg-white/70 p-4 text-base text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              rows={5}
+              className="w-full rounded-2xl border border-gray-200 bg-white/70 p-4 text-base text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 sm:text-lg"
+              rows={6}
               value={userInput}
               onChange={(event) => setUserInput(event.target.value)}
               placeholder="e.g., I want to prepare for a 10K run but I only have 6 weeks and a busy schedule."
@@ -229,7 +240,7 @@ const GoalSetupPage = () => {
                 type="button"
                 onClick={handleStepOneNext}
                 disabled={isLoading || !userInput.trim()}
-                className="w-full rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-blue-500 disabled:opacity-60 sm:w-auto"
+                className="w-full rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-blue-500 disabled:opacity-60 sm:w-auto sm:text-base"
               >
                 Next: Clarifying Questions
               </button>
@@ -238,7 +249,7 @@ const GoalSetupPage = () => {
         ) : null}
 
         {step === 2 ? (
-          <div className="space-y-4 rounded-xl bg-white/80 p-6 shadow-md backdrop-blur">
+          <div className="space-y-5 rounded-xl bg-white/80 p-6 shadow-md backdrop-blur">
             <div className="space-y-2">
               <p className="text-xl font-semibold">Step 2 — Clarifying Questions</p>
               <p className="text-sm text-gray-600">Answer a few quick questions so we can tailor your SMART plan.</p>
@@ -250,8 +261,8 @@ const GoalSetupPage = () => {
                   <div key={question} className="space-y-2">
                     <p className="text-sm font-medium text-gray-800">{question}</p>
                     <textarea
-                      className="w-full rounded-xl border border-gray-200 bg-white/70 p-3 text-sm text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                      rows={3}
+                      className="w-full rounded-2xl border border-gray-200 bg-white/70 p-3 text-base text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 sm:text-lg"
+                      rows={4}
                       value={answers[index] ?? ""}
                       onChange={(event) =>
                         setAnswers((prev) => prev.map((answer, idx) => (idx === index ? event.target.value : answer)))
@@ -270,7 +281,7 @@ const GoalSetupPage = () => {
                 type="button"
                 onClick={handleStepTwoNext}
                 disabled={isLoading}
-                className="w-full rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-blue-500 disabled:opacity-60 sm:w-auto"
+                className="w-full rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-blue-500 disabled:opacity-60 sm:w-auto sm:text-base"
               >
                 Next: Generate SMART
               </button>
@@ -279,7 +290,7 @@ const GoalSetupPage = () => {
         ) : null}
 
         {step === 3 ? (
-          <div className="space-y-4 rounded-xl bg-white/80 p-6 shadow-md backdrop-blur">
+          <div className="space-y-5 rounded-xl bg-white/80 p-6 shadow-md backdrop-blur">
             <div className="space-y-2">
               <p className="text-xl font-semibold">Step 3 — SMART Breakdown</p>
               <p className="text-sm text-gray-600">Review and adjust the SMART details before creating action ideas.</p>
@@ -288,7 +299,7 @@ const GoalSetupPage = () => {
             <div className="space-y-3">
               <input
                 type="text"
-                className="w-full rounded-xl border border-gray-200 bg-white/70 p-4 text-sm font-semibold text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                className="w-full rounded-2xl border border-gray-200 bg-white/70 p-4 text-base font-semibold text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 sm:text-lg"
                 value={goalTitle}
                 onChange={(event) => setGoalTitle(event.target.value)}
                 placeholder="Goal title"
@@ -306,8 +317,8 @@ const GoalSetupPage = () => {
                 <div key={key} className="space-y-2">
                   <p className="text-sm font-medium text-gray-800">{label}</p>
                   <textarea
-                    className="w-full rounded-xl border border-gray-200 bg-white/70 p-3 text-sm text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                    rows={3}
+                    className="w-full rounded-2xl border border-gray-200 bg-white/70 p-3 text-base text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 sm:text-lg"
+                    rows={4}
                     value={smart[key]}
                     onChange={(event) => setSmart((prev) => ({ ...prev, [key]: event.target.value }))}
                   />
@@ -320,7 +331,7 @@ const GoalSetupPage = () => {
                 type="button"
                 onClick={handleStepThreeNext}
                 disabled={isLoading}
-                className="w-full rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-blue-500 disabled:opacity-60 sm:w-auto"
+                className="w-full rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-blue-500 disabled:opacity-60 sm:w-auto sm:text-base"
               >
                 Next: Generate Action Ideas
               </button>
@@ -329,7 +340,7 @@ const GoalSetupPage = () => {
         ) : null}
 
         {step === 4 ? (
-          <div className="space-y-4 rounded-xl bg-white/80 p-6 shadow-md backdrop-blur">
+          <div className="space-y-5 rounded-xl bg-white/80 p-6 shadow-md backdrop-blur">
             <div className="space-y-2">
               <p className="text-xl font-semibold">Step 4 — Action Suggestions</p>
               <p className="text-sm text-gray-600">Pick and refine the actions you want to take next.</p>
@@ -339,14 +350,25 @@ const GoalSetupPage = () => {
               {actions.length > 0 ? (
                 actions.map((action, index) => (
                   <div key={index} className="rounded-2xl border border-gray-100 bg-white/70 p-4 shadow-sm">
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <div className="space-y-1">
                         <label className="text-sm font-medium text-gray-800">Action</label>
                         <input
                           type="text"
-                          className="w-full rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                          className="w-full rounded-2xl border border-gray-200 bg-white p-3 text-base text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 sm:text-lg"
                           value={action.title}
                           onChange={(event) => handleActionTitleChange(index, event.target.value)}
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-800">Description</label>
+                        <textarea
+                          className="w-full rounded-2xl border border-gray-200 bg-white p-3 text-base text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 sm:text-lg"
+                          rows={3}
+                          value={action.description}
+                          onChange={(event) => handleActionDescriptionChange(index, event.target.value)}
+                          placeholder="Add helpful details or steps for this action"
                         />
                       </div>
 
@@ -354,7 +376,7 @@ const GoalSetupPage = () => {
                         <label className="text-sm font-medium text-gray-800">Deadline</label>
                         <input
                           type="date"
-                          className="w-full rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                          className="w-full rounded-2xl border border-gray-200 bg-white p-3 text-base text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 sm:text-lg"
                           value={action.deadline}
                           onChange={(event) => handleActionDeadlineChange(index, event.target.value)}
                         />
