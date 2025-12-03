@@ -41,7 +41,8 @@ Rules:
 - Include a mix of quick wins, medium steps, and slightly longer tasks.
 - Avoid overlapping or redundant tasks.
 - Titles should be short and action-oriented, without repeating SMART text.
-- Description and recommendedDeadline are optional but must be strings when provided.
+- Description and recommendedDeadline must be strings when provided.
+- Description in 3- 4 sentences and easy understand
 - recommendedDeadline can be things like "3 days", "1 week", "daily", or "monthly".
 - Do not add any extra fields or commentary.
 Ensure JSON is valid.`;
