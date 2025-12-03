@@ -19,7 +19,6 @@ const GoalSetupPage = () => {
   const [step, setStep] = useState(1);
 
   const [userInput, setUserInput] = useState("");
-  const [useExtraQuestions, setUseExtraQuestions] = useState(true);
 
   const [questions, setQuestions] = useState<string[]>([]);
   const [answers, setAnswers] = useState(["", "", ""]);
@@ -39,10 +38,10 @@ const GoalSetupPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (step === 2 && useExtraQuestions) {
+    if (step === 2) {
       generateQuestions();
     }
-  }, [step, useExtraQuestions]);
+  }, [step]);
 
   const generateQuestions = async () => {
     if (!userInput.trim()) {
@@ -92,7 +91,7 @@ const GoalSetupPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userInput,
-          answers: useExtraQuestions ? answers : [],
+          answers,
         }),
       });
 
@@ -173,15 +172,7 @@ const GoalSetupPage = () => {
       return;
     }
 
-    if (useExtraQuestions) {
-      setStep(2);
-      return;
-    }
-
-    const success = await generateSmart();
-    if (success) {
-      setStep(3);
-    }
+    setStep(2);
   };
 
   const handleStepTwoNext = async () => {
@@ -207,14 +198,17 @@ const GoalSetupPage = () => {
   };
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
-      <h1 className="mb-6 text-3xl font-bold">Set Up Your Goal</h1>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 px-3 py-10 sm:px-4">
+      <div className="mx-auto max-w-3xl space-y-3 text-center sm:text-left">
+        <h1 className="text-3xl font-bold text-gray-900">Set Up Your Goal</h1>
+        <p className="text-sm text-gray-600">A calm, guided flow to refine your goal and actions—optimized for any screen.</p>
+      </div>
 
-      <div className="space-y-6">
+      <div className="mx-auto mt-6 max-w-3xl space-y-6">
         {error ? <p className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}</p> : null}
 
         {step === 1 ? (
-          <div className="space-y-4 rounded-xl bg-white p-6 shadow-md">
+          <div className="space-y-4 rounded-xl bg-white/80 p-6 shadow-md backdrop-blur">
             <div className="space-y-2">
               <p className="text-xl font-semibold">Step 1 — Target / Problem</p>
               <p className="text-sm text-gray-600">
@@ -223,38 +217,28 @@ const GoalSetupPage = () => {
             </div>
 
             <textarea
-              className="w-full rounded-lg border border-gray-200 p-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className="w-full rounded-xl border border-gray-200 bg-white/70 p-4 text-base text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
               rows={5}
               value={userInput}
               onChange={(event) => setUserInput(event.target.value)}
               placeholder="e.g., I want to prepare for a 10K run but I only have 6 weeks and a busy schedule."
             />
 
-            <label className="flex items-center space-x-3 rounded-lg bg-gray-50 p-3">
-              <input
-                type="checkbox"
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                checked={useExtraQuestions}
-                onChange={(event) => setUseExtraQuestions(event.target.checked)}
-              />
-              <span className="text-sm font-medium text-gray-800">Ask extra questions (recommended)</span>
-            </label>
-
             <div className="flex justify-end">
               <button
                 type="button"
                 onClick={handleStepOneNext}
                 disabled={isLoading || !userInput.trim()}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow disabled:opacity-60"
+                className="w-full rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-blue-500 disabled:opacity-60 sm:w-auto"
               >
-                {useExtraQuestions ? "Next" : "Next: Generate SMART"}
+                Next: Clarifying Questions
               </button>
             </div>
           </div>
         ) : null}
 
         {step === 2 ? (
-          <div className="space-y-4 rounded-xl bg-white p-6 shadow-md">
+          <div className="space-y-4 rounded-xl bg-white/80 p-6 shadow-md backdrop-blur">
             <div className="space-y-2">
               <p className="text-xl font-semibold">Step 2 — Clarifying Questions</p>
               <p className="text-sm text-gray-600">Answer a few quick questions so we can tailor your SMART plan.</p>
@@ -266,7 +250,7 @@ const GoalSetupPage = () => {
                   <div key={question} className="space-y-2">
                     <p className="text-sm font-medium text-gray-800">{question}</p>
                     <textarea
-                      className="w-full rounded-lg border border-gray-200 p-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      className="w-full rounded-xl border border-gray-200 bg-white/70 p-3 text-sm text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                       rows={3}
                       value={answers[index] ?? ""}
                       onChange={(event) =>
@@ -286,7 +270,7 @@ const GoalSetupPage = () => {
                 type="button"
                 onClick={handleStepTwoNext}
                 disabled={isLoading}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow disabled:opacity-60"
+                className="w-full rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-blue-500 disabled:opacity-60 sm:w-auto"
               >
                 Next: Generate SMART
               </button>
@@ -295,7 +279,7 @@ const GoalSetupPage = () => {
         ) : null}
 
         {step === 3 ? (
-          <div className="space-y-4 rounded-xl bg-white p-6 shadow-md">
+          <div className="space-y-4 rounded-xl bg-white/80 p-6 shadow-md backdrop-blur">
             <div className="space-y-2">
               <p className="text-xl font-semibold">Step 3 — SMART Breakdown</p>
               <p className="text-sm text-gray-600">Review and adjust the SMART details before creating action ideas.</p>
@@ -304,7 +288,7 @@ const GoalSetupPage = () => {
             <div className="space-y-3">
               <input
                 type="text"
-                className="w-full rounded-lg border border-gray-200 p-3 text-sm font-semibold text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                className="w-full rounded-xl border border-gray-200 bg-white/70 p-4 text-sm font-semibold text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 value={goalTitle}
                 onChange={(event) => setGoalTitle(event.target.value)}
                 placeholder="Goal title"
@@ -322,7 +306,7 @@ const GoalSetupPage = () => {
                 <div key={key} className="space-y-2">
                   <p className="text-sm font-medium text-gray-800">{label}</p>
                   <textarea
-                    className="w-full rounded-lg border border-gray-200 p-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    className="w-full rounded-xl border border-gray-200 bg-white/70 p-3 text-sm text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     rows={3}
                     value={smart[key]}
                     onChange={(event) => setSmart((prev) => ({ ...prev, [key]: event.target.value }))}
@@ -336,7 +320,7 @@ const GoalSetupPage = () => {
                 type="button"
                 onClick={handleStepThreeNext}
                 disabled={isLoading}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow disabled:opacity-60"
+                className="w-full rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-blue-500 disabled:opacity-60 sm:w-auto"
               >
                 Next: Generate Action Ideas
               </button>
@@ -345,7 +329,7 @@ const GoalSetupPage = () => {
         ) : null}
 
         {step === 4 ? (
-          <div className="space-y-4 rounded-xl bg-white p-6 shadow-md">
+          <div className="space-y-4 rounded-xl bg-white/80 p-6 shadow-md backdrop-blur">
             <div className="space-y-2">
               <p className="text-xl font-semibold">Step 4 — Action Suggestions</p>
               <p className="text-sm text-gray-600">Pick and refine the actions you want to take next.</p>
@@ -354,13 +338,13 @@ const GoalSetupPage = () => {
             <div className="space-y-3">
               {actions.length > 0 ? (
                 actions.map((action, index) => (
-                  <div key={index} className="rounded-lg border border-gray-100 p-4">
+                  <div key={index} className="rounded-2xl border border-gray-100 bg-white/70 p-4 shadow-sm">
                     <div className="space-y-3">
                       <div className="space-y-1">
                         <label className="text-sm font-medium text-gray-800">Action</label>
                         <input
                           type="text"
-                          className="w-full rounded-lg border border-gray-200 p-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                          className="w-full rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                           value={action.title}
                           onChange={(event) => handleActionTitleChange(index, event.target.value)}
                         />
@@ -370,7 +354,7 @@ const GoalSetupPage = () => {
                         <label className="text-sm font-medium text-gray-800">Deadline</label>
                         <input
                           type="date"
-                          className="w-full rounded-lg border border-gray-200 p-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                          className="w-full rounded-xl border border-gray-200 bg-white p-3 text-sm text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                           value={action.deadline}
                           onChange={(event) => handleActionDeadlineChange(index, event.target.value)}
                         />
@@ -383,11 +367,11 @@ const GoalSetupPage = () => {
               )}
             </div>
 
-            <div className="flex items-center justify-end space-x-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
               <button
                 type="button"
                 onClick={() => console.log("Save coming soon")}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow"
+                className="w-full rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-blue-500 sm:w-auto"
               >
                 Next: Review &amp; Save
               </button>
