@@ -10,6 +10,7 @@ import { StepTitle } from "../../components/md3/StepTitle";
 import styles from "../../components/md3/md3.module.css";
 import { db } from "../../lib/firebaseClient";
 import { useAuth } from "../../components/auth/AuthProvider";
+import { safeToDate } from "../../lib/safeTimestamp";
 
 type ActionListItem = {
   id: string;
@@ -88,10 +89,10 @@ export default function ActionsListPage() {
           return {
             id: actionDoc.id,
             title: data.title || "Untitled action",
-            deadline: data.deadline?.toDate?.() ?? null,
+            deadline: safeToDate(data.deadline),
             status: data.status || "pending",
             goalTitle,
-            createdAt: data.createdAt?.toDate?.() ?? null,
+            createdAt: safeToDate(data.createdAt),
           };
         });
 
