@@ -369,11 +369,27 @@
   background: transparent;
 }
 
+.pageShell {
+  width: 100%;
+  max-width: 960px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+
 .contentStack {
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 0 8px 100px;
+}
+
+.pageStack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 8px 60px;
 }
 
 .bottomBar {
@@ -449,6 +465,21 @@
   background: rgba(0, 0, 0, 0.04);
 }
 
+.dangerButton {
+  border-color: rgba(179, 38, 30, 0.4);
+  color: var(--md3-error);
+}
+
+.dangerButton:hover {
+  background: rgba(179, 38, 30, 0.08);
+}
+
+.inlineButton {
+  width: auto;
+  min-width: 140px;
+  flex: 0 0 auto;
+}
+
 .inlineLabel {
   font-size: 14px;
   font-weight: 600;
@@ -457,4 +488,194 @@
 
 .topSpacing {
   padding-top: 12px;
+}
+
+.accordionCard {
+  padding: 0;
+  overflow: hidden;
+}
+
+.accordionOpen {
+  box-shadow: var(--md3-shadow-strong);
+}
+
+.accordionHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 18px 18px 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.accordionHeader:hover {
+  background: rgba(103, 80, 164, 0.06);
+}
+
+.accordionTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 700;
+  color: var(--md3-on-surface);
+}
+
+.accordionMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  color: var(--md3-on-surface-variant);
+  font-size: 14px;
+  margin: 6px 0 0;
+}
+
+.chevron {
+  color: var(--md3-on-surface-variant);
+  transition: transform var(--md3-duration) var(--md3-ease);
+}
+
+.accordionOpen .chevron {
+  transform: rotate(90deg);
+}
+
+.accordionContent {
+  padding: 0 18px 18px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sectionHeading {
+  margin: 6px 0 8px;
+  font-size: 16px;
+  line-height: 22px;
+  color: var(--md3-on-surface);
+}
+
+.smartGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.smartCard {
+  background: #f7f2ff;
+  border: 1px solid rgba(103, 80, 164, 0.15);
+  border-radius: 14px;
+  padding: 12px 12px 10px;
+}
+
+.smartLabel {
+  margin: 0 0 4px;
+  color: var(--md3-on-surface-variant);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.smartText {
+  margin: 0;
+  color: var(--md3-on-surface);
+  line-height: 20px;
+}
+
+.actionList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.actionItemRow {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(103, 80, 164, 0.14);
+  background: #fbf7ff;
+}
+
+.actionItemContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.actionTitle {
+  margin: 0;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 700;
+  color: var(--md3-on-surface);
+}
+
+.actionDeadline {
+  margin: 0;
+  color: var(--md3-on-surface-variant);
+  font-size: 14px;
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(98, 91, 113, 0.12);
+  color: var(--md3-on-surface);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.statusPillDone {
+  background: rgba(46, 125, 50, 0.14);
+  color: #1b5e20;
+}
+
+.subtleLabel {
+  margin: 4px 0 0;
+  color: var(--md3-on-surface-variant);
+  font-size: 13px;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.errorText {
+  color: var(--md3-error);
+  margin: 0;
+}
+
+.emptyState {
+  text-align: center;
+  color: var(--md3-on-surface-variant);
+  padding: 18px 12px;
+  border: 1px dashed rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  background: rgba(103, 80, 164, 0.03);
+}
+
+.metaRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.metaText {
+  color: var(--md3-on-surface-variant);
+  font-size: 14px;
 }

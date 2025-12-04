@@ -19,15 +19,15 @@ const features = [
   {
     title: "View Goals List",
     description: "See every goal you've created and jump back into the details when you're ready.",
-    href: null,
-    status: "In development",
+    href: "/goals-list",
+    status: "Available now",
     cta: "View goals",
   },
   {
     title: "View Actions List",
     description: "Review the action steps across all of your goals to keep work moving forward.",
-    href: null,
-    status: "In development",
+    href: "/actions-list",
+    status: "Available now",
     cta: "View actions",
   },
   {
