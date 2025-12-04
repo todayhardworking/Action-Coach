@@ -3,6 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { RequireAuth } from "../../components/auth/RequireAuth";
 import { useAuth } from "../../components/auth/AuthProvider";
+import { AppBarTop } from "../../components/md3/AppBarTop";
+import { StepCard } from "../../components/md3/StepCard";
+import { StepDescription } from "../../components/md3/StepDescription";
+import { StepTitle } from "../../components/md3/StepTitle";
+import styles from "../../components/md3/md3.module.css";
 
 type ActionItem = {
   id: string;
@@ -126,63 +131,119 @@ export default function ActionsListPage() {
     [actions]
   );
 
+  const summary = useMemo(() => {
+    const pendingCount = actions.filter((action) => action.status === "pending").length;
+    const doneCount = actions.filter((action) => action.status === "done").length;
+
+    const nextDeadline = actions
+      .map((action) => new Date(action.deadline))
+      .filter((date) => !Number.isNaN(date.getTime()))
+      .sort((a, b) => a.getTime() - b.getTime())[0];
+
+    return {
+      pendingCount,
+      doneCount,
+      nextDeadline: nextDeadline ? nextDeadline.toLocaleDateString() : "—",
+    };
+  }, [actions]);
+
   const isBusy = (actionId: string) => loading || processingId === actionId;
 
   return (
     <RequireAuth>
-      <div className="max-w-3xl mx-auto px-4 py-8 space-y-4">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold text-gray-900">Your Actions</h1>
-          <p className="text-gray-600">Manage your action items and keep your goals on track.</p>
-        </div>
+      <div className={styles.surfaceContainer}>
+        <div className={styles.wizardShell}>
+          <AppBarTop title="Actions" />
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
-
-        {loading ? (
-          <div className="text-gray-600">Loading actions...</div>
-        ) : formattedActions.length === 0 ? (
-          <div className="text-gray-600">No actions found.</div>
-        ) : (
-          <div className="space-y-3">
-            {formattedActions.map((action) => (
-              <div
-                key={action.id}
-                className="rounded-xl border p-4 shadow-sm bg-white space-y-2"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <h2 className="text-lg font-semibold text-gray-900">{action.title}</h2>
-                    <p className="text-sm text-gray-600">Deadline: {action.deadlineDisplay}</p>
-                    <p className="text-sm text-gray-600">Status: {action.status}</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    className="bg-green-600 text-white px-3 py-1 rounded-lg disabled:opacity-70"
-                    onClick={() => handleMarkDone(action.id)}
-                    disabled={isBusy(action.id) || action.status === "done"}
-                  >
-                    Mark Done
-                  </button>
-                  <button
-                    type="button"
-                    className="bg-red-600 text-white px-3 py-1 rounded-lg disabled:opacity-70"
-                    onClick={() => handleDelete(action.id)}
-                    disabled={isBusy(action.id)}
-                  >
-                    Delete
-                  </button>
+          <StepCard>
+            <StepTitle>Your action queue</StepTitle>
+            <StepDescription>
+              Track every step across your goals, mark work as done, and keep your plan up to date.
+            </StepDescription>
+            <div className={`${styles.contentStack} ${styles.topSpacing}`}>
+              <div className={`${styles.statusCard} ${styles.statusSuccess}`}>
+                <div className={styles.statusIcon}>✓</div>
+                <div>
+                  <p className={styles.statusTitle}>Progress overview</p>
+                  <p className={styles.supportText}>
+                    {summary.pendingCount} pending · {summary.doneCount} completed · Next due {summary.nextDeadline}
+                  </p>
                 </div>
               </div>
-            ))}
+            </div>
+          </StepCard>
+
+          <div className={styles.contentStack}>
+            {error ? (
+              <div className={`${styles.statusCard} ${styles.statusError}`} role="alert">
+                <div className={styles.statusIcon}>!</div>
+                <div>
+                  <p className={styles.statusTitle}>Something went wrong</p>
+                  <p className={styles.supportText}>{error}</p>
+                </div>
+              </div>
+            ) : null}
+
+            {loading ? (
+              <StepCard elevated>
+                <div className="flex items-center gap-3">
+                  <div className={styles.loader} aria-hidden />
+                  <p className={styles.supportText}>Loading your actions...</p>
+                </div>
+              </StepCard>
+            ) : formattedActions.length === 0 ? (
+              <StepCard elevated>
+                <StepTitle>Nothing to do yet</StepTitle>
+                <StepDescription>
+                  Start a new goal in the wizard and we will bring your action steps back here to keep you
+                  accountable.
+                </StepDescription>
+              </StepCard>
+            ) : (
+              formattedActions.map((action) => (
+                <StepCard key={action.id} elevated>
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex flex-col gap-2">
+                        <div className={styles.badge}>Deadline · {action.deadlineDisplay}</div>
+                        <h2 className="text-xl font-semibold text-gray-900">{action.title}</h2>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`${styles.chip} ${
+                              action.status === "done" ? "bg-green-50 text-green-800" : ""
+                            }`}
+                          >
+                            {action.status === "done" ? "Completed" : "Pending"}
+                          </span>
+                          <span className={styles.supportText}>Target ID: {action.targetId}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={styles.actionsRow}>
+                      <button
+                        type="button"
+                        className={styles.filledButton}
+                        onClick={() => handleMarkDone(action.id)}
+                        disabled={isBusy(action.id) || action.status === "done"}
+                      >
+                        {processingId === action.id && action.status !== "done" ? "Updating..." : "Mark done"}
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.tonalButton}
+                        onClick={() => handleDelete(action.id)}
+                        disabled={isBusy(action.id)}
+                      >
+                        {processingId === action.id && action.status === "done" ? "Removing..." : "Delete"}
+                      </button>
+                    </div>
+                  </div>
+                </StepCard>
+              ))
+            )}
           </div>
-        )}
+        </div>
       </div>
     </RequireAuth>
   );
