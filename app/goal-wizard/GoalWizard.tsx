@@ -10,6 +10,7 @@ import {
   SaveGoalPayload,
   SmartFields,
   generateActions,
+  generateMoreActions,
   generateQuestions,
   generateSmart,
   saveGoalData,
@@ -106,8 +107,14 @@ export function GoalWizard({ uid }: GoalWizardProps) {
     setLoading(true);
     setError(null);
     try {
-      const generatedActions = await generateActions(goalTitle.trim(), smart);
-      setActions((current) => [...current, ...generatedActions]);
+      const generatedActions = await generateMoreActions(goalTitle.trim(), smart, actions);
+      setActions((current) => {
+        const existingTitles = new Set(current.map((action) => action.title.toLowerCase()));
+        const filtered = generatedActions.filter(
+          (action) => !existingTitles.has(action.title.toLowerCase()),
+        );
+        return [...current, ...filtered];
+      });
     } catch (apiError) {
       setError(apiError instanceof Error ? apiError.message : "Unable to generate actions.");
     } finally {

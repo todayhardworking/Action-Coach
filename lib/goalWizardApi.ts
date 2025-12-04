@@ -106,6 +106,28 @@ export async function generateActions(goalTitle: string, smart: SmartFields) {
   return data.actions.map((action) => ({ ...action, userDeadline: "" }));
 }
 
+export async function generateMoreActions(
+  goalTitle: string,
+  smart: SmartFields,
+  previousActions: ActionPlanItem[],
+) {
+  const response = await fetch("/api/generate-more-actions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      goalTitle,
+      smart: toApiSmart(smart),
+      previousActions: previousActions.map((action) => ({
+        title: action.title,
+        description: action.description,
+      })),
+    }),
+  });
+
+  const data = await handleJson<GenerateActionsResponse>(response);
+  return data.actions.map((action) => ({ ...action, userDeadline: "" }));
+}
+
 export interface SaveGoalPayload {
   uid: string;
   goalTitle: string;
