@@ -9,6 +9,7 @@ type ListActionsRequest = {
 type ActionResponse = {
   id: string;
   title: string;
+  description: string;  // <-- NEW
   deadline: string;
   status: 'pending' | 'done';
   targetId: string;
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
 
     const actions: ActionResponse[] = snapshot.docs.map((doc) => {
       const data = doc.data();
+
       const deadlineValue = data.deadline;
       const deadline =
         deadlineValue instanceof Timestamp
@@ -48,6 +50,8 @@ export async function POST(request: Request) {
       return {
         id: doc.id,
         title: typeof data.title === 'string' ? data.title : '',
+        description:
+          typeof data.description === 'string' ? data.description : '', // <-- NEW FIELD
         deadline,
         status: data.status === 'done' ? 'done' : 'pending',
         targetId: typeof data.targetId === 'string' ? data.targetId : '',
@@ -57,6 +61,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ actions });
   } catch (error) {
     console.error('Failed to fetch actions.', { error });
-    return NextResponse.json({ error: 'Failed to fetch actions.' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to fetch actions.' },
+      { status: 500 }
+    );
   }
 }
