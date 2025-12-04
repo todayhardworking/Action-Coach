@@ -274,6 +274,64 @@
   color: var(--md3-on-surface-variant);
 }
 
+.statusCard {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border-radius: var(--md3-radius-card);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 14px 16px;
+}
+
+.statusIcon {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+}
+
+.statusTitle {
+  margin: 0 0 4px;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 700;
+}
+
+.statusSuccess {
+  background: #f1fff4;
+  border-color: rgba(46, 125, 50, 0.16);
+  color: #1b5e20;
+}
+
+.statusSuccess .statusIcon {
+  background: rgba(46, 125, 50, 0.12);
+  color: #1b5e20;
+}
+
+.statusSuccess .statusTitle,
+.statusSuccess .supportText {
+  color: #1b5e20;
+}
+
+.statusError {
+  background: #fff4f4;
+  border-color: rgba(179, 38, 30, 0.2);
+  color: var(--md3-error);
+}
+
+.statusError .statusIcon {
+  background: rgba(179, 38, 30, 0.12);
+  color: var(--md3-error);
+}
+
+.statusError .statusTitle,
+.statusError .supportText {
+  color: var(--md3-error);
+}
+
 .divider {
   border: none;
   height: 1px;

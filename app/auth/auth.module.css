@@ -3,19 +3,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at top left, #f4eefa, #f9f7fd 40%, #ffffff);
-  padding: 32px 16px;
+  background: linear-gradient(180deg, #fdf8ff 0%, #f4f0ff 100%);
+  padding: 32px 16px 48px;
 }
 
-.card {
-  width: min(480px, 100%);
-  background: #ffffff;
-  border-radius: 24px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-  padding: 28px;
+.shell {
+  width: min(520px, 100%);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
 }
 
 .header {
@@ -28,93 +24,54 @@
   font-size: 13px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #7c3aed;
+  color: var(--md3-primary);
   font-weight: 700;
   margin: 0;
-}
-
-.title {
-  margin: 0;
-  font-size: 28px;
-  line-height: 1.2;
-}
-
-.subtitle {
-  margin: 0;
-  color: #4b5563;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.label {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-weight: 600;
-  color: #111827;
-}
-
-.input {
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 12px;
-  font-size: 16px;
-  transition: border-color 120ms ease, box-shadow 120ms ease;
-}
-
-.input:focus {
-  outline: none;
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+  gap: 16px;
 }
 
 .error {
-  color: #b91c1c;
+  color: var(--md3-error);
   font-weight: 600;
   margin: 4px 0 0;
 }
 
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .primaryButton {
-  background: linear-gradient(135deg, #7c3aed, #6d28d9);
-  color: #ffffff;
-  border: none;
-  border-radius: 14px;
-  padding: 14px 16px;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform 120ms ease, box-shadow 120ms ease;
-  box-shadow: 0 10px 28px rgba(109, 40, 217, 0.25);
-}
-
-.primaryButton:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.primaryButton:not(:disabled):hover {
-  transform: translateY(-1px);
+  width: 100%;
 }
 
 .footer {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: #4b5563;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--md3-on-surface-variant);
 }
 
 .linkButton {
   background: none;
-  color: #6d28d9;
+  color: var(--md3-primary);
   border: none;
-  padding: 0;
+  padding: 8px 12px;
   font-weight: 700;
   cursor: pointer;
+  border-radius: 12px;
+  transition: background-color var(--md3-duration) var(--md3-ease);
+}
+
+.linkButton:hover:not(:disabled) {
+  background: rgba(103, 80, 164, 0.08);
 }
 
 .linkButton:disabled {

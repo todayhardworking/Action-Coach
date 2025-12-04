@@ -12,6 +12,8 @@ interface MD3TextFieldProps {
   required?: boolean;
   name?: string;
   type?: string;
+  autoComplete?: string;
+  minLength?: number;
 }
 
 export function MD3TextField({
@@ -23,6 +25,8 @@ export function MD3TextField({
   required,
   name,
   type = "text",
+  autoComplete,
+  minLength,
 }: MD3TextFieldProps) {
   const id = useId();
   const [isFocused, setIsFocused] = useState(false);
@@ -38,6 +42,8 @@ export function MD3TextField({
     placeholder,
     required,
     className: styles.textFieldControl,
+    autoComplete,
+    minLength,
   };
 
   return (

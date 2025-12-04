@@ -52,7 +52,8 @@ function isValidActions(actions: ActionItem[] | undefined): actions is ActionIte
 }
 
 function parseDeadline(deadline: string): Date | null {
-  const parsed = new Date(deadline);
+  const normalized = deadline.includes("T") ? deadline : `${deadline}T00:00:00.000Z`;
+  const parsed = new Date(normalized);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
@@ -87,7 +88,12 @@ export async function POST(request: Request) {
 
   try {
     const db = getAdminDb();
-    const targetDoc = await db.collection('targets').add({
+    const batch = db.batch();
+
+    const targetRef = db.collection('targets').doc();
+    const targetId = targetRef.id;
+
+    batch.set(targetRef, {
       title: goalTitle,
       status: 'active',
       userId,
@@ -95,27 +101,25 @@ export async function POST(request: Request) {
       createdAt: FieldValue.serverTimestamp(),
     });
 
-    const targetId = targetDoc.id;
-    const actionsCollection = db.collection('actions');
+    actions.forEach((action) => {
+      const deadlineDate = parseDeadline(action.deadline);
 
-    await Promise.all(
-      actions.map((action) => {
-        const deadlineDate = parseDeadline(action.deadline);
+      if (!deadlineDate) {
+        throw new Error('Invalid action deadline.');
+      }
 
-        if (!deadlineDate) {
-          throw new Error('Invalid action deadline.');
-        }
+      const actionRef = db.collection('actions').doc();
+      batch.set(actionRef, {
+        title: action.title.trim(),
+        deadline: Timestamp.fromDate(deadlineDate),
+        status: 'pending',
+        targetId,
+        userId,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+    });
 
-        return actionsCollection.add({
-          title: action.title.trim(),
-          deadline: Timestamp.fromDate(deadlineDate),
-          status: 'pending',
-          targetId,
-          userId,
-          createdAt: FieldValue.serverTimestamp(),
-        });
-      })
-    );
+    await batch.commit();
 
     return NextResponse.json({ success: true, targetId });
   } catch (error) {

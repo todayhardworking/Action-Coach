@@ -16,9 +16,10 @@ interface Step4ActionsProps {
   onGenerateMore: () => void;
   onSave: () => void;
   loading?: boolean;
+  saving?: boolean;
 }
 
-export function Step4Actions({ actions, onUpdateAction, onDelete, onGenerateMore, onSave, loading }: Step4ActionsProps) {
+export function Step4Actions({ actions, onUpdateAction, onDelete, onGenerateMore, onSave, loading, saving }: Step4ActionsProps) {
   return (
     <StepCard elevated>
       <StepIndicator current={4} total={4} />
@@ -70,7 +71,12 @@ export function Step4Actions({ actions, onUpdateAction, onDelete, onGenerateMore
       </div>
       <div className={styles.bottomBar}>
         <div className={styles.bottomActions}>
-          <button type="button" className={styles.tonalButton} onClick={onGenerateMore} disabled={loading}>
+          <button
+            type="button"
+            className={styles.tonalButton}
+            onClick={onGenerateMore}
+            disabled={loading || saving}
+          >
             {loading ? (
               <span className={styles.listRow}>
                 <span className={styles.loader} aria-hidden />
@@ -82,7 +88,7 @@ export function Step4Actions({ actions, onUpdateAction, onDelete, onGenerateMore
           </button>
           <NextButton
             label={
-              loading ? (
+              saving ? (
                 <span className={styles.listRow}>
                   <span className={styles.loader} aria-hidden />
                   Saving...
@@ -92,7 +98,7 @@ export function Step4Actions({ actions, onUpdateAction, onDelete, onGenerateMore
               )
             }
             onClick={onSave}
-            disabled={loading}
+            disabled={loading || saving}
           />
         </div>
       </div>
