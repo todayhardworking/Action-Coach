@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { AppBarTop } from "../../components/md3/AppBarTop";
+import { RequireAuth } from "../../components/auth/RequireAuth";
 import { StepCard } from "../../components/md3/StepCard";
 import { StepDescription } from "../../components/md3/StepDescription";
 import { StepTitle } from "../../components/md3/StepTitle";
@@ -38,40 +41,42 @@ const features = [
 
 export default function DashboardPage() {
   return (
-    <div className={styles.surfaceContainer}>
-      <div className={styles.wizardShell}>
-        <AppBarTop title="Your Dashboard" />
-        <StepCard>
-          <StepTitle>Your goals at a glance</StepTitle>
-          <StepDescription>
-            Use these quick actions to create new goals, review your plans, and manage your account.
-          </StepDescription>
-        </StepCard>
-        <div className={styles.contentStack}>
-          {features.map(({ title, description, href, status, cta }) => (
-            <StepCard key={title}>
-              <div className={styles.featureCardContent}>
-                <div>
-                  <div className={styles.chip}>{status}</div>
-                  <h3 className={styles.featureTitle}>{title}</h3>
-                  <p className={styles.featureDescription}>{description}</p>
+    <RequireAuth>
+      <div className={styles.surfaceContainer}>
+        <div className={styles.wizardShell}>
+          <AppBarTop title="Your Dashboard" />
+          <StepCard>
+            <StepTitle>Your goals at a glance</StepTitle>
+            <StepDescription>
+              Use these quick actions to create new goals, review your plans, and manage your account.
+            </StepDescription>
+          </StepCard>
+          <div className={styles.contentStack}>
+            {features.map(({ title, description, href, status, cta }) => (
+              <StepCard key={title}>
+                <div className={styles.featureCardContent}>
+                  <div>
+                    <div className={styles.chip}>{status}</div>
+                    <h3 className={styles.featureTitle}>{title}</h3>
+                    <p className={styles.featureDescription}>{description}</p>
+                  </div>
+                  <div className={styles.featureActions}>
+                    {href ? (
+                      <Link href={href} className={`${styles.filledButton} ${styles.linkButton}`}>
+                        {cta}
+                      </Link>
+                    ) : (
+                      <button type="button" className={styles.tonalButton} disabled>
+                        Coming soon
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className={styles.featureActions}>
-                  {href ? (
-                    <Link href={href} className={`${styles.filledButton} ${styles.linkButton}`}>
-                      {cta}
-                    </Link>
-                  ) : (
-                    <button type="button" className={styles.tonalButton} disabled>
-                      Coming soon
-                    </button>
-                  )}
-                </div>
-              </div>
-            </StepCard>
-          ))}
+              </StepCard>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </RequireAuth>
   );
 }
