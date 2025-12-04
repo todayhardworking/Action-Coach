@@ -13,28 +13,24 @@ const features = [
     title: "Add Goal",
     description: "Launch the goal wizard to turn a new intention into a SMART action plan.",
     href: "/goal-wizard",
-    status: "Available now",
     cta: "Start a goal",
   },
   {
     title: "View Goals List",
     description: "See every goal you've created and jump back into the details when you're ready.",
     href: null,
-    status: "In development",
     cta: "View goals",
   },
   {
     title: "View Actions List",
     description: "Review the action steps across all of your goals to keep work moving forward.",
     href: "/actions-list",
-    status: "Available now",
     cta: "View actions",
   },
   {
     title: "Delete Account & Data",
     description: "Manage your data footprint and request removal of your account and saved items.",
     href: null,
-    status: "In development",
     cta: "Delete account",
   },
 ];
@@ -52,11 +48,10 @@ export default function DashboardPage() {
             </StepDescription>
           </StepCard>
           <div className={styles.contentStack}>
-            {features.map(({ title, description, href, status, cta }) => (
+            {features.map(({ title, description, href, cta }) => (
               <StepCard key={title}>
                 <div className={styles.featureCardContent}>
                   <div>
-                    <div className={styles.chip}>{status}</div>
                     <h3 className={styles.featureTitle}>{title}</h3>
                     <p className={styles.featureDescription}>{description}</p>
                   </div>
