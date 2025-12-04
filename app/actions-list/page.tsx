@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { RequireAuth } from "../components/auth/RequireAuth";
-import { useAuth } from "../components/auth/AuthProvider";
+import { RequireAuth } from "../../components/auth/RequireAuth";
+import { useAuth } from "../../components/auth/AuthProvider";
 
 type ActionItem = {
   id: string;
