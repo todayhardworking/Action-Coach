@@ -210,10 +210,6 @@ export default function ActionsListPage() {
                         {/* Title */}
                         <h2 className="text-xl font-semibold text-gray-900">{action.title}</h2>
 
-                        {action.goalTitle && (
-                          <p className="text-sm font-semibold !text-red-700">{action.goalTitle}</p>
-                        )}
-
                         {/* NEW: Description under Title, smaller font */}
                         {action.description && (
                           <p className="text-sm text-gray-600 leading-snug">
