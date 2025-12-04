@@ -293,6 +293,12 @@
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
 }
 
+.bottomActions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .inlineActions {
   display: flex;
   gap: 12px;

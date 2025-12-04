@@ -12,17 +12,20 @@ import { ActionPlanItem } from "../../../lib/goalWizardApi";
 interface Step4ActionsProps {
   actions: ActionPlanItem[];
   onUpdateAction: (index: number, key: keyof ActionPlanItem, value: string) => void;
-  onMove: (fromIndex: number, direction: "up" | "down") => void;
+  onDelete: (index: number) => void;
+  onGenerateMore: () => void;
   onSave: () => void;
   loading?: boolean;
 }
 
-export function Step4Actions({ actions, onUpdateAction, onMove, onSave, loading }: Step4ActionsProps) {
+export function Step4Actions({ actions, onUpdateAction, onDelete, onGenerateMore, onSave, loading }: Step4ActionsProps) {
   return (
     <StepCard elevated>
       <StepIndicator current={4} total={4} />
       <StepTitle>Your Action Plan</StepTitle>
-      <StepDescription>These steps help you stay consistent and accountable. Edit or reorder anything before saving.</StepDescription>
+      <StepDescription>
+        These steps help you stay consistent and accountable. Edit or remove anything and request more suggestions before saving.
+      </StepDescription>
       <div className={styles.contentStack}>
         {actions.map((action, index) => (
           <div key={`${action.title}-${index}`} className={`${styles.actionCard} ${styles.fadeSlideIn}`}>
@@ -52,36 +55,46 @@ export function Step4Actions({ actions, onUpdateAction, onMove, onSave, loading 
               <div className={styles.chip}>Suggested: {action.recommendedDeadline || "Set your pace"}</div>
             </div>
             <div className={styles.reorderButtons}>
-              <button type="button" className={styles.ghostButton} onClick={() => onMove(index, "up")} aria-label="Move action up">
-                ↑ Move up
-              </button>
               <button
                 type="button"
                 className={styles.ghostButton}
-                onClick={() => onMove(index, "down")}
-                aria-label="Move action down"
+                onClick={() => onDelete(index)}
+                aria-label={`Delete action ${index + 1}`}
+                disabled={loading}
               >
-                ↓ Move down
+                ✕ Delete
               </button>
             </div>
           </div>
         ))}
       </div>
       <div className={styles.bottomBar}>
-        <NextButton
-          label={
-            loading ? (
+        <div className={styles.bottomActions}>
+          <button type="button" className={styles.tonalButton} onClick={onGenerateMore} disabled={loading}>
+            {loading ? (
               <span className={styles.listRow}>
                 <span className={styles.loader} aria-hidden />
-                Saving...
+                Generating more...
               </span>
             ) : (
-              "Save Goal"
-            )
-          }
-          onClick={onSave}
-          disabled={loading}
-        />
+              "Generate more action suggestions"
+            )}
+          </button>
+          <NextButton
+            label={
+              loading ? (
+                <span className={styles.listRow}>
+                  <span className={styles.loader} aria-hidden />
+                  Saving...
+                </span>
+              ) : (
+                "Save Goal"
+              )
+            }
+            onClick={onSave}
+            disabled={loading}
+          />
+        </div>
       </div>
     </StepCard>
   );

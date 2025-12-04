@@ -102,6 +102,19 @@ export function GoalWizard({ uid }: GoalWizardProps) {
     }
   };
 
+  const handleGenerateMoreActions = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const generatedActions = await generateActions(goalTitle.trim(), smart);
+      setActions((current) => [...current, ...generatedActions]);
+    } catch (apiError) {
+      setError(apiError instanceof Error ? apiError.message : "Unable to generate actions.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSave = async () => {
     setLoading(true);
     setError(null);
@@ -141,18 +154,6 @@ export function GoalWizard({ uid }: GoalWizardProps) {
     }
   };
 
-  const handleReorder = (index: number, direction: "up" | "down") => {
-    setActions((current) => {
-      const next = [...current];
-      const targetIndex = direction === "up" ? index - 1 : index + 1;
-      if (targetIndex < 0 || targetIndex >= current.length) return current;
-      const temp = next[index];
-      next[index] = next[targetIndex];
-      next[targetIndex] = temp;
-      return next;
-    });
-  };
-
   const renderStep = () => {
     switch (step) {
       case 1:
@@ -189,7 +190,8 @@ export function GoalWizard({ uid }: GoalWizardProps) {
             onUpdateAction={(index, key, value) =>
               setActions((current) => current.map((action, idx) => (idx === index ? { ...action, [key]: value } : action)))
             }
-            onMove={handleReorder}
+            onDelete={(index) => setActions((current) => current.filter((_, idx) => idx !== index))}
+            onGenerateMore={handleGenerateMoreActions}
             onSave={handleSave}
             loading={loading}
           />
