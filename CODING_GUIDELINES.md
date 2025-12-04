@@ -34,3 +34,9 @@ These lightweight rules keep the project consistent and easy to maintain.
 - Each PR should do **one focused thing**.
 - Title must state the feature clearly.
 - Include a short summary of what changed.
+
+## 6. FIRESTORE RULES
+- All Firestore timestamps must be converted to ISO strings before returning to client: createdAt: data.createdAt.toDate().toISOString()
+- Always store createdAt as Firestore Timestamp: admin.firestore.Timestamp.now()
+- Never return raw Firestore objects.
+- Any query using where() + orderBy() requires a composite index.
