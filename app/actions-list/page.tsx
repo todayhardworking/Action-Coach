@@ -12,7 +12,7 @@ import styles from "../../components/md3/md3.module.css";
 type ActionItem = {
   id: string;
   title: string;
-  description: string;   // <-- NEW
+  description: string;   // <-- NEW FIELD
   deadline: string;
   status: "pending" | "done";
 };
@@ -195,8 +195,7 @@ export default function ActionsListPage() {
               <StepCard elevated>
                 <StepTitle>Nothing to do yet</StepTitle>
                 <StepDescription>
-                  Start a new goal in the wizard and we will bring your action steps back here to keep you
-                  accountable.
+                  Start a new goal in the wizard and we will bring your action steps back here to keep you accountable.
                 </StepDescription>
               </StepCard>
             ) : (
@@ -206,7 +205,17 @@ export default function ActionsListPage() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex flex-col gap-2">
                         <div className={styles.badge}>Deadline · {action.deadlineDisplay}</div>
+
+                        {/* Title */}
                         <h2 className="text-xl font-semibold text-gray-900">{action.title}</h2>
+
+                        {/* NEW: Description under Title, smaller font */}
+                        {action.description && (
+                          <p className="text-sm text-gray-600 leading-snug">
+                            {action.description}
+                          </p>
+                        )}
+
                         <div className="flex items-center gap-2">
                           <span
                             className={`${styles.chip} ${
@@ -215,7 +224,6 @@ export default function ActionsListPage() {
                           >
                             {action.status === "done" ? "Completed" : "Pending"}
                           </span>
-                          
                         </div>
                       </div>
                     </div>
