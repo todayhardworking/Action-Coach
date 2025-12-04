@@ -55,8 +55,7 @@ function isValidActions(actions: ActionItem[] | undefined): actions is ActionIte
       action.title.trim().length > 0 &&
       typeof action?.deadline === 'string' &&
       action.deadline.trim().length > 0 &&
-      typeof action?.description === 'string' &&
-      action.description.trim().length > 0
+      (action.description === undefined || typeof action.description === 'string')
   );
 }
 
@@ -104,7 +103,7 @@ export async function POST(request: Request) {
   const actions = body.actions;
   if (!isValidActions(actions)) {
     return NextResponse.json({
-      error: 'Each action must have a title, deadline, and description.',
+      error: 'Each action must have a title and deadline.',
     }, { status: 400 });
   }
 

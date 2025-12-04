@@ -148,6 +148,7 @@ export async function saveGoalData(payload: SaveGoalPayload) {
       actions: payload.actions.map((action) => ({
         title: action.title,
         deadline: action.userDeadline?.trim() || "",
+        description: action.description?.trim() || "",
       })),
     }),
   });
