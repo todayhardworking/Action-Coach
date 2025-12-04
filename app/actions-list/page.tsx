@@ -44,15 +44,20 @@ function sortActions(actions: ActionListItem[]) {
 }
 
 export default function ActionsListPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [actions, setActions] = useState<ActionListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
     if (!user) {
       setActions([]);
+      setLoading(false);
       return;
     }
 
@@ -100,7 +105,7 @@ export default function ActionsListPage() {
     };
 
     fetchActions();
-  }, [user]);
+  }, [authLoading, user]);
 
   const updateActionStatus = async (actionId: string, newStatus: string) => {
     if (!user) return;

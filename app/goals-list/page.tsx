@@ -52,15 +52,20 @@ function formatDate(date: Date | null) {
 }
 
 export default function GoalsListPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
     if (!user) {
       setGoals([]);
+      setLoading(false);
       return;
     }
 
@@ -121,7 +126,7 @@ export default function GoalsListPage() {
     };
 
     fetchGoals();
-  }, [user]);
+  }, [authLoading, user]);
 
   const hasGoals = useMemo(() => goals.length > 0, [goals]);
 
