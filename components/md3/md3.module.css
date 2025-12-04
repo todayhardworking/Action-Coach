@@ -1,0 +1,358 @@
+:global(:root) {
+  --md3-primary: #6750a4;
+  --md3-on-primary: #ffffff;
+  --md3-secondary: #625b71;
+  --md3-on-secondary: #ffffff;
+  --md3-surface: #fdf8ff;
+  --md3-surface-variant: #e7e0ec;
+  --md3-outline: #79747e;
+  --md3-on-surface: #1c1b1f;
+  --md3-on-surface-variant: #49454f;
+  --md3-error: #b3261e;
+  --md3-shadow: 0 1px 2px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.08);
+  --md3-shadow-strong: 0 4px 10px rgba(0, 0, 0, 0.16), 0 2px 6px rgba(0, 0, 0, 0.08);
+  --md3-radius-card: 22px;
+  --md3-radius-text-field: 12px;
+  --md3-radius-button: 16px;
+  --md3-duration: 180ms;
+  --md3-ease: cubic-bezier(0.2, 0.0, 0.0, 1);
+}
+
+.appBar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 20px 16px;
+  background: var(--md3-surface);
+  transition: box-shadow var(--md3-duration) var(--md3-ease),
+    transform var(--md3-duration) var(--md3-ease);
+}
+
+.appBarScrolled {
+  box-shadow: var(--md3-shadow);
+  transform: translateY(0);
+}
+
+.appBarTitle {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 700;
+  color: var(--md3-on-surface);
+  margin: 0;
+}
+
+.backButton {
+  border: none;
+  background: transparent;
+  color: var(--md3-primary);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: var(--md3-radius-button);
+  transition: background-color var(--md3-duration) var(--md3-ease),
+    box-shadow var(--md3-duration) var(--md3-ease);
+}
+
+.backButton:hover {
+  background: rgba(103, 80, 164, 0.1);
+}
+
+.stepIndicator {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--md3-on-surface-variant);
+  margin-bottom: 6px;
+}
+
+.stepTitle {
+  font-size: 32px;
+  line-height: 36px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--md3-on-surface);
+}
+
+.stepDescription {
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--md3-on-surface-variant);
+  margin: 8px 0 0;
+  white-space: pre-line;
+}
+
+.stepCard {
+  background: var(--md3-surface);
+  border-radius: var(--md3-radius-card);
+  box-shadow: var(--md3-shadow);
+  padding: 22px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.stepCardElevated {
+  box-shadow: var(--md3-shadow-strong);
+}
+
+.textField {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  gap: 6px;
+}
+
+.textFieldLabel {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--md3-on-surface-variant);
+  transform-origin: left top;
+  transition: transform var(--md3-duration) var(--md3-ease),
+    color var(--md3-duration) var(--md3-ease),
+    top var(--md3-duration) var(--md3-ease);
+  pointer-events: none;
+}
+
+.textFieldControl {
+  width: 100%;
+  padding: 22px 16px 10px;
+  border-radius: var(--md3-radius-text-field);
+  border: 1px solid var(--md3-outline);
+  background: #f6f0ff;
+  color: var(--md3-on-surface);
+  font-size: 16px;
+  line-height: 24px;
+  transition: border-color var(--md3-duration) var(--md3-ease),
+    box-shadow var(--md3-duration) var(--md3-ease),
+    background-color var(--md3-duration) var(--md3-ease);
+}
+
+.textFieldControl:focus {
+  outline: none;
+  border-color: var(--md3-primary);
+  box-shadow: 0 0 0 3px rgba(103, 80, 164, 0.18);
+  background: #f3ebff;
+}
+
+.textFieldControl:focus + .textFieldLabel,
+.textFieldHasValue .textFieldLabel {
+  transform: translateY(-12px) scale(0.85);
+  top: 10px;
+  color: var(--md3-primary);
+}
+
+.textFieldError .textFieldControl {
+  border-color: var(--md3-error);
+  box-shadow: 0 0 0 3px rgba(179, 38, 30, 0.15);
+}
+
+.textFieldError .textFieldLabel {
+  color: var(--md3-error);
+}
+
+.actionsRow {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.filledButton,
+.tonalButton {
+  border: none;
+  padding: 14px 18px;
+  border-radius: var(--md3-radius-button);
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 24px;
+  cursor: pointer;
+  width: 100%;
+  transition: transform var(--md3-duration) var(--md3-ease),
+    box-shadow var(--md3-duration) var(--md3-ease),
+    background-color var(--md3-duration) var(--md3-ease);
+}
+
+.filledButton {
+  background: var(--md3-primary);
+  color: var(--md3-on-primary);
+  box-shadow: var(--md3-shadow-strong);
+}
+
+.filledButton:hover {
+  background: #7a61d0;
+}
+
+.filledButton:active {
+  transform: translateY(1px);
+}
+
+.filledButton:disabled,
+.tonalButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.tonalButton {
+  background: rgba(98, 91, 113, 0.16);
+  color: var(--md3-on-surface);
+}
+
+.fadeSlideIn {
+  animation: fadeSlideIn var(--md3-duration) var(--md3-ease);
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.loader {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 3px solid rgba(103, 80, 164, 0.18);
+  border-top-color: var(--md3-primary);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(98, 91, 113, 0.1);
+  color: var(--md3-on-surface);
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.listRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.iconDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--md3-primary);
+}
+
+.supportText {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--md3-on-surface-variant);
+}
+
+.divider {
+  border: none;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.06);
+  margin: 12px 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 16px;
+  background: rgba(103, 80, 164, 0.1);
+  color: var(--md3-primary);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.surfaceContainer {
+  background: linear-gradient(180deg, #fdf8ff 0%, #f4f0ff 100%);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px 24px;
+}
+
+.wizardShell {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+  background: transparent;
+}
+
+.contentStack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 4px 100px;
+}
+
+.bottomBar {
+  position: sticky;
+  bottom: 0;
+  padding: 16px;
+  background: var(--md3-surface);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.inlineActions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.actionCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  background: #f7f2ff;
+  border: 1px solid rgba(103, 80, 164, 0.15);
+}
+
+.reorderButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.ghostButton {
+  background: transparent;
+  border: 1px solid var(--md3-surface-variant);
+  border-radius: 12px;
+  padding: 8px 10px;
+  color: var(--md3-on-surface);
+  cursor: pointer;
+  transition: background-color var(--md3-duration) var(--md3-ease);
+}
+
+.ghostButton:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.inlineLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--md3-on-surface);
+}
+
+.topSpacing {
+  padding-top: 12px;
+}
