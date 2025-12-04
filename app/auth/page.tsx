@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../lib/firebaseClient";
@@ -10,6 +10,26 @@ import styles from "./auth.module.css";
 type AuthMode = "signin" | "signup";
 
 export default function AuthPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className={styles.page}>
+          <div className={styles.card}>
+            <div className={styles.header}>
+              <p className={styles.eyebrow}>Welcome</p>
+              <h1 className={styles.title}>Loading…</h1>
+              <p className={styles.subtitle}>Preparing the sign-in experience.</p>
+            </div>
+          </div>
+        </main>
+      }
+    >
+      <AuthContent />
+    </Suspense>
+  );
+}
+
+function AuthContent() {
   const [mode, setMode] = useState<AuthMode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,10 +41,10 @@ export default function AuthPage() {
   const searchParams = useSearchParams();
   const { user, loading } = useAuth();
 
-  const redirectTarget = (() => {
+  const redirectTarget = useMemo(() => {
     const redirect = searchParams.get("redirect");
     return redirect ? decodeURIComponent(redirect) : "/dashboard";
-  })();
+  }, [searchParams]);
 
   useEffect(() => {
     if (!loading && user) {
