@@ -13,6 +13,7 @@ type ActionResponse = {
   deadline: string;
   status: 'pending' | 'done';
   targetId: string;
+  goalTitle: string;
 };
 
 export async function POST(request: Request) {
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
       .orderBy('deadline', 'asc')
       .get();
 
-    const actions: ActionResponse[] = snapshot.docs.map((doc) => {
+    const actions: Omit<ActionResponse, 'goalTitle'>[] = snapshot.docs.map((doc) => {
       const data = doc.data();
 
       const deadlineValue = data.deadline;
@@ -58,7 +59,26 @@ export async function POST(request: Request) {
       };
     });
 
-    return NextResponse.json({ actions });
+    const uniqueTargetIds = Array.from(new Set(actions.map((action) => action.targetId).filter(Boolean)));
+
+    const targets = await Promise.all(
+      uniqueTargetIds.map(async (targetId) => {
+        const targetDoc = await db.collection('targets').doc(targetId).get();
+        const data = targetDoc.data();
+
+        const title = data && typeof data.title === 'string' ? data.title : '';
+        return [targetId, title] as const;
+      })
+    );
+
+    const targetTitleMap = new Map<string, string>(targets);
+
+    const actionsWithGoals: ActionResponse[] = actions.map((action) => ({
+      ...action,
+      goalTitle: targetTitleMap.get(action.targetId) ?? '',
+    }));
+
+    return NextResponse.json({ actions: actionsWithGoals });
   } catch (error) {
     console.error('Failed to fetch actions.', { error });
     return NextResponse.json(

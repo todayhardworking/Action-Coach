@@ -15,6 +15,7 @@ type ActionItem = {
   description: string;   // <-- NEW FIELD
   deadline: string;
   status: "pending" | "done";
+  goalTitle: string;
 };
 
 export default function ActionsListPage() {
@@ -208,6 +209,10 @@ export default function ActionsListPage() {
 
                         {/* Title */}
                         <h2 className="text-xl font-semibold text-gray-900">{action.title}</h2>
+
+                        {action.goalTitle && (
+                          <p className="text-sm font-semibold text-indigo-700">{action.goalTitle}</p>
+                        )}
 
                         {/* NEW: Description under Title, smaller font */}
                         {action.description && (
