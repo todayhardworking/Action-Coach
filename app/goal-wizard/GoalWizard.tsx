@@ -152,6 +152,7 @@ export function GoalWizard({ uid }: GoalWizardProps) {
         actions: actions.map((action) => ({
           ...action,
           title: action.title.trim(),
+          description: (action.description || "").trim(),
           userDeadline: (action.userDeadline || "").trim(),
         })),
         questions,
@@ -174,6 +175,13 @@ export function GoalWizard({ uid }: GoalWizardProps) {
       const hasValidActionTitles = payload.actions.every((action) => action.title.length > 0);
       if (!hasValidActionTitles) {
         throw new Error("Please add a title for each action before saving.");
+      }
+
+      const hasValidActionDescriptions = payload.actions.every(
+        (action) => (action.description ?? "").length > 0,
+      );
+      if (!hasValidActionDescriptions) {
+        throw new Error("Please add a description for each action before saving.");
       }
 
       const hasValidDates = payload.actions.every((action) => {
@@ -245,6 +253,8 @@ export function GoalWizard({ uid }: GoalWizardProps) {
             onSave={handleSave}
             loading={loading}
             saving={saving}
+            successMessage={success}
+            errorMessage={error}
           />
         );
       default:
@@ -260,28 +270,6 @@ export function GoalWizard({ uid }: GoalWizardProps) {
           <StepTitle>{progressTitle}</StepTitle>
           <StepDescription>Follow the 4-step flow to turn your intention into an action-ready plan.</StepDescription>
         </div>
-        {success ? (
-          <div className={`${styles.stepCard} ${styles.statusCard} ${styles.statusSuccess}`} role="status">
-            <span className={styles.statusIcon} aria-hidden>
-              ✓
-            </span>
-            <div>
-              <p className={styles.statusTitle}>Goal saved</p>
-              <p className={styles.supportText}>{success}</p>
-            </div>
-          </div>
-        ) : null}
-        {error ? (
-          <div className={`${styles.stepCard} ${styles.statusCard} ${styles.statusError}`} role="alert">
-            <span className={styles.statusIcon} aria-hidden>
-              !
-            </span>
-            <div>
-              <p className={styles.statusTitle}>Unable to save</p>
-              <p className={styles.supportText}>{error}</p>
-            </div>
-          </div>
-        ) : null}
         <div key={step} className={styles.fadeSlideIn}>
           {renderStep()}
         </div>
