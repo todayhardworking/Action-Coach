@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { getAdminDb } from '../../../lib/firebaseAdmin';
 
+//
+// ---------- Types ----------
+//
 type SmartDetails = {
   specific: string;
   measurable: string;
@@ -13,6 +16,7 @@ type SmartDetails = {
 type ActionItem = {
   title: string;
   deadline: string;
+  description?: string;
 };
 
 type SaveGoalRequest = {
@@ -22,6 +26,9 @@ type SaveGoalRequest = {
   actions?: ActionItem[];
 };
 
+//
+// ---------- Validation Helpers ----------
+//
 function isValidSmart(smart: SmartDetails | undefined): smart is SmartDetails {
   return (
     typeof smart?.specific === 'string' &&
@@ -47,25 +54,38 @@ function isValidActions(actions: ActionItem[] | undefined): actions is ActionIte
       typeof action?.title === 'string' &&
       action.title.trim().length > 0 &&
       typeof action?.deadline === 'string' &&
-      action.deadline.trim().length > 0
+      action.deadline.trim().length > 0 &&
+      typeof action?.description === 'string' &&
+      action.description.trim().length > 0
   );
 }
 
 function parseDeadline(deadline: string): Date | null {
-  const normalized = deadline.includes("T") ? deadline : `${deadline}T00:00:00.000Z`;
+  // Ensure a valid ISO format
+  const normalized = deadline.includes('T')
+    ? deadline
+    : `${deadline}T00:00:00.000Z`;
+
   const parsed = new Date(normalized);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
+//
+// ---------- Main API ----------
+//
 export async function POST(request: Request) {
   let body: SaveGoalRequest;
 
+  // Parse JSON safely
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 });
   }
 
+  //
+  // Required Fields
+  //
   const userId = typeof body.userId === 'string' ? body.userId.trim() : '';
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized: userId is required.' }, { status: 403 });
@@ -83,13 +103,19 @@ export async function POST(request: Request) {
 
   const actions = body.actions;
   if (!isValidActions(actions)) {
-    return NextResponse.json({ error: 'At least one action with a title and deadline is required.' }, { status: 400 });
+    return NextResponse.json({
+      error: 'Each action must have a title, deadline, and description.',
+    }, { status: 400 });
   }
 
+  //
+  // Firestore Write
+  //
   try {
     const db = getAdminDb();
     const batch = db.batch();
 
+    // Create target document
     const targetRef = db.collection('targets').doc();
     const targetId = targetRef.id;
 
@@ -101,16 +127,16 @@ export async function POST(request: Request) {
       createdAt: FieldValue.serverTimestamp(),
     });
 
+    // Create action documents
     actions.forEach((action) => {
       const deadlineDate = parseDeadline(action.deadline);
-
-      if (!deadlineDate) {
-        throw new Error('Invalid action deadline.');
-      }
+      if (!deadlineDate) throw new Error('Invalid action deadline.');
 
       const actionRef = db.collection('actions').doc();
+
       batch.set(actionRef, {
         title: action.title.trim(),
+        description: action.description?.trim() || '',
         deadline: Timestamp.fromDate(deadlineDate),
         status: 'pending',
         targetId,
@@ -124,6 +150,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, targetId });
   } catch (error) {
     console.error('Failed to save goal data.', { error });
-    return NextResponse.json({ error: 'Failed to save goal data.' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to save goal data.' },
+      { status: 500 }
+    );
   }
 }
