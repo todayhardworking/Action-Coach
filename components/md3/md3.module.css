@@ -167,6 +167,16 @@
   color: var(--md3-error);
 }
 
+.successCard {
+  border-color: #2e7d32;
+  box-shadow: 0 10px 30px rgba(46, 125, 50, 0.12);
+  background: #f1f8e9;
+}
+
+.successCard .supportText {
+  color: #1b5e20;
+}
+
 .actionsRow {
   display: flex;
   gap: 12px;

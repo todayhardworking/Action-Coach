@@ -41,6 +41,7 @@ export function GoalWizard({ uid }: GoalWizardProps) {
   const [actions, setActions] = useState<ActionPlanItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const userId = uid || "demo-user";
 
   const progressTitle = useMemo(() => {
@@ -62,6 +63,7 @@ export function GoalWizard({ uid }: GoalWizardProps) {
     if (!goalTitle.trim()) return;
     setLoading(true);
     setError(null);
+    setSaveMessage(null);
     try {
       const generated = await generateQuestions(goalTitle.trim());
       setQuestions(generated);
@@ -152,8 +154,9 @@ export function GoalWizard({ uid }: GoalWizardProps) {
         throw new Error("Please add a calendar date for each action.");
       }
 
-      await saveGoalData(payload);
-      setError(null);
+      const saveResponse = await saveGoalData(payload);
+      const savedTargetLabel = saveResponse.targetId ? `Goal saved (ID: ${saveResponse.targetId}).` : "Goal saved.";
+      setSaveMessage(savedTargetLabel);
     } catch (apiError) {
       setError(apiError instanceof Error ? apiError.message : "Unable to save your goal.");
     } finally {
@@ -219,6 +222,11 @@ export function GoalWizard({ uid }: GoalWizardProps) {
         {error ? (
           <div className={`${styles.stepCard} ${styles.textFieldError}`}>
             <p className={styles.supportText}>{error}</p>
+          </div>
+        ) : null}
+        {saveMessage ? (
+          <div className={`${styles.stepCard} ${styles.successCard}`}>
+            <p className={styles.supportText}>{saveMessage}</p>
           </div>
         ) : null}
         <div key={step} className={styles.fadeSlideIn}>
