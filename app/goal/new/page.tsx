@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { RequireAuth } from "../../../components/auth/RequireAuth";
 
 type SmartFields = {
   specific: string;
@@ -400,27 +401,29 @@ export default function NewGoalPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10">
-      <div className="mx-auto flex max-w-5xl flex-col items-center gap-6">
-        <div className="w-full max-w-3xl rounded-2xl border bg-white p-6 shadow-md md:p-8">
-          <div className="space-y-4">
-            <div className="space-y-1">
-              <h1 className="text-3xl font-bold text-slate-900">Goal Setup</h1>
-              <p className="text-slate-600">Craft your goal with clarifying questions, SMART details, and guided actions.</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xl font-semibold text-slate-900">{currentTitle}</p>
-              <p className="text-sm text-slate-600">Follow the steps to refine and plan your goal.</p>
-            </div>
-            {error ? (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
-                {error}
+    <RequireAuth>
+      <main className="min-h-screen bg-slate-50 px-4 py-10">
+        <div className="mx-auto flex max-w-5xl flex-col items-center gap-6">
+          <div className="w-full max-w-3xl rounded-2xl border bg-white p-6 shadow-md md:p-8">
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <h1 className="text-3xl font-bold text-slate-900">Goal Setup</h1>
+                <p className="text-slate-600">Craft your goal with clarifying questions, SMART details, and guided actions.</p>
               </div>
-            ) : null}
-            {renderStepContent()}
+              <div className="space-y-1">
+                <p className="text-xl font-semibold text-slate-900">{currentTitle}</p>
+                <p className="text-sm text-slate-600">Follow the steps to refine and plan your goal.</p>
+              </div>
+              {error ? (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+                  {error}
+                </div>
+              ) : null}
+              {renderStepContent()}
+            </div>
           </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </RequireAuth>
   );
 }
