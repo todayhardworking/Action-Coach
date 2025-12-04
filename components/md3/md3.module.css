@@ -63,6 +63,39 @@
   white-space: pre-line;
 }
 
+.featureCardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.featureTitle {
+  margin: 4px 0 0;
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 700;
+  color: var(--md3-on-surface);
+}
+
+.featureDescription {
+  margin: 6px 0 0;
+  color: var(--md3-on-surface-variant);
+  line-height: 22px;
+}
+
+.featureActions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.linkButton {
+  text-decoration: none;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .stepCard {
   background: var(--md3-surface);
   border-radius: var(--md3-radius-card);
