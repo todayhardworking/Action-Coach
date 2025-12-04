@@ -43,7 +43,7 @@ export function GoalWizard({ uid }: GoalWizardProps) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const userId = uid || "demo-user";
+  const userId = uid?.trim();
 
   const progressTitle = useMemo(() => {
     switch (step) {
@@ -133,6 +133,10 @@ export function GoalWizard({ uid }: GoalWizardProps) {
     setError(null);
     setSuccess(null);
     try {
+      if (!userId) {
+        throw new Error("Please sign in again before saving your goal.");
+      }
+
       const trimmedSmart: SmartFields = {
         specific: smart.specific.trim(),
         measurable: smart.measurable.trim(),

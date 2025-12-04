@@ -147,7 +147,7 @@ export async function saveGoalData(payload: SaveGoalPayload) {
       smart: toApiSmart(payload.smart),
       actions: payload.actions.map((action) => ({
         title: action.title,
-        deadline: action.userDeadline || "",
+        deadline: action.userDeadline?.trim() || "",
       })),
     }),
   });
