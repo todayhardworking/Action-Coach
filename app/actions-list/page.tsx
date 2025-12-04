@@ -14,8 +14,7 @@ type ActionItem = {
   title: string;
   deadline: string;
   status: "pending" | "done";
-  targetId: string;
-};
+  };
 
 export default function ActionsListPage() {
   const { user } = useAuth();
@@ -215,7 +214,7 @@ export default function ActionsListPage() {
                           >
                             {action.status === "done" ? "Completed" : "Pending"}
                           </span>
-                          <span className={styles.supportText}>Target ID: {action.targetId}</span>
+                          
                         </div>
                       </div>
                     </div>
