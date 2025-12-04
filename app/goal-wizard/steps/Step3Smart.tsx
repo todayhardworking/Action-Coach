@@ -14,7 +14,6 @@ interface Step3SmartProps {
   smart: SmartFields;
   onGoalTitleChange: (value: string) => void;
   onUpdateField: (key: keyof SmartFields, value: string) => void;
-  onBack: () => void;
   onNext: () => void;
   loading?: boolean;
 }
@@ -24,7 +23,6 @@ export function Step3Smart({
   smart,
   onGoalTitleChange,
   onUpdateField,
-  onBack,
   onNext,
   loading,
 }: Step3SmartProps) {
@@ -53,10 +51,7 @@ export function Step3Smart({
           />
         ))}
       </div>
-      <div className={`${styles.bottomBar} ${styles.inlineActions}`}>
-        <button type="button" className={styles.tonalButton} onClick={onBack} disabled={loading}>
-          Back
-        </button>
+      <div className={styles.bottomBar}>
         <NextButton
           label={
             loading ? (

@@ -11,9 +11,7 @@ import styles from "../../../components/md3/md3.module.css";
 interface Step2QuestionsProps {
   questions: string[];
   answers: string[];
-  onQuestionChange: (index: number, value: string) => void;
   onAnswerChange: (index: number, value: string) => void;
-  onBack: () => void;
   onNext: () => void;
   loading?: boolean;
 }
@@ -21,9 +19,7 @@ interface Step2QuestionsProps {
 export function Step2Questions({
   questions,
   answers,
-  onQuestionChange,
   onAnswerChange,
-  onBack,
   onNext,
   loading,
 }: Step2QuestionsProps) {
@@ -38,7 +34,10 @@ export function Step2Questions({
         ) : (
           questions.map((question, index) => (
             <div key={`${question}-${index}`} className={`${styles.actionCard} ${styles.fadeSlideIn}`}>
-              <MD3TextField label={`Question ${index + 1}`} value={question} onChange={(value) => onQuestionChange(index, value)} />
+              <div className={styles.questionDisplay}>
+                <div className={styles.inlineLabel}>Question {index + 1}</div>
+                <p className={styles.questionText}>{question}</p>
+              </div>
               <MD3TextField
                 label="Your Answer"
                 value={answers[index] ?? ""}
@@ -50,10 +49,7 @@ export function Step2Questions({
           ))
         )}
       </div>
-      <div className={`${styles.bottomBar} ${styles.inlineActions}`}>
-        <button type="button" className={styles.tonalButton} onClick={onBack} disabled={loading}>
-          Back
-        </button>
+      <div className={styles.bottomBar}>
         <NextButton
           label={
             loading ? (

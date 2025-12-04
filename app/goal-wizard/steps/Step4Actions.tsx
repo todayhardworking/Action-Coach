@@ -13,12 +13,11 @@ interface Step4ActionsProps {
   actions: ActionPlanItem[];
   onUpdateAction: (index: number, key: keyof ActionPlanItem, value: string) => void;
   onMove: (fromIndex: number, direction: "up" | "down") => void;
-  onBack: () => void;
   onSave: () => void;
   loading?: boolean;
 }
 
-export function Step4Actions({ actions, onUpdateAction, onMove, onBack, onSave, loading }: Step4ActionsProps) {
+export function Step4Actions({ actions, onUpdateAction, onMove, onSave, loading }: Step4ActionsProps) {
   return (
     <StepCard elevated>
       <StepIndicator current={4} total={4} />
@@ -43,7 +42,7 @@ export function Step4Actions({ actions, onUpdateAction, onMove, onBack, onSave, 
               multiline
               placeholder="(MD3 TextField with visible description)"
             />
-            <div className={styles.inlineActions}>
+            <div className={styles.inlineWrap}>
               <MD3TextField
                 label="Propose timeline"
                 value={action.userDeadline ?? ""}
@@ -68,10 +67,7 @@ export function Step4Actions({ actions, onUpdateAction, onMove, onBack, onSave, 
           </div>
         ))}
       </div>
-      <div className={`${styles.bottomBar} ${styles.inlineActions}`}>
-        <button type="button" className={styles.tonalButton} onClick={onBack} disabled={loading}>
-          Back
-        </button>
+      <div className={styles.bottomBar}>
         <NextButton
           label={
             loading ? (

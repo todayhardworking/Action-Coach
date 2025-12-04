@@ -57,11 +57,6 @@ export function GoalWizard({ uid }: GoalWizardProps) {
     }
   }, [step]);
 
-  const handleBack = () => {
-    setError(null);
-    setStep((current) => Math.max(1, current - 1));
-  };
-
   const handleGenerateQuestions = async () => {
     if (!goalTitle.trim()) return;
     setLoading(true);
@@ -169,13 +164,9 @@ export function GoalWizard({ uid }: GoalWizardProps) {
           <Step2Questions
             questions={questions}
             answers={answers}
-            onQuestionChange={(index, value) =>
-              setQuestions((current) => current.map((question, idx) => (idx === index ? value : question)))
-            }
             onAnswerChange={(index, value) =>
               setAnswers((current) => current.map((answer, idx) => (idx === index ? value : answer)))
             }
-            onBack={handleBack}
             onNext={handleGenerateSmart}
             loading={loading}
           />
@@ -187,7 +178,6 @@ export function GoalWizard({ uid }: GoalWizardProps) {
             smart={smart}
             onGoalTitleChange={setGoalTitle}
             onUpdateField={(key, value) => setSmart((current) => ({ ...current, [key]: value }))}
-            onBack={handleBack}
             onNext={handleGenerateActions}
             loading={loading}
           />
@@ -200,7 +190,6 @@ export function GoalWizard({ uid }: GoalWizardProps) {
               setActions((current) => current.map((action, idx) => (idx === index ? { ...action, [key]: value } : action)))
             }
             onMove={handleReorder}
-            onBack={handleBack}
             onSave={handleSave}
             loading={loading}
           />
@@ -213,7 +202,7 @@ export function GoalWizard({ uid }: GoalWizardProps) {
   return (
     <div className={styles.surfaceContainer}>
       <div className={styles.wizardShell}>
-        <AppBarTop title="Set a New Goal" onBack={step > 1 ? handleBack : undefined} />
+        <AppBarTop title="Set a New Goal" />
         <div className={styles.stepCard}>
           <StepTitle>{progressTitle}</StepTitle>
           <StepDescription>Follow the 4-step flow to turn your intention into an action-ready plan.</StepDescription>
