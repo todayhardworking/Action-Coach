@@ -17,9 +17,21 @@ interface Step4ActionsProps {
   onSave: () => void;
   loading?: boolean;
   saving?: boolean;
+  successMessage?: string | null;
+  errorMessage?: string | null;
 }
 
-export function Step4Actions({ actions, onUpdateAction, onDelete, onGenerateMore, onSave, loading, saving }: Step4ActionsProps) {
+export function Step4Actions({
+  actions,
+  onUpdateAction,
+  onDelete,
+  onGenerateMore,
+  onSave,
+  loading,
+  saving,
+  successMessage,
+  errorMessage,
+}: Step4ActionsProps) {
   return (
     <StepCard elevated>
       <StepIndicator current={4} total={4} />
@@ -75,7 +87,7 @@ export function Step4Actions({ actions, onUpdateAction, onDelete, onGenerateMore
             type="button"
             className={styles.tonalButton}
             onClick={onGenerateMore}
-            disabled={loading || saving}
+            disabled={loading || saving || Boolean(successMessage)}
           >
             {loading ? (
               <span className={styles.listRow}>
@@ -98,9 +110,31 @@ export function Step4Actions({ actions, onUpdateAction, onDelete, onGenerateMore
               )
             }
             onClick={onSave}
-            disabled={loading || saving}
+            disabled={loading || saving || Boolean(successMessage)}
           />
         </div>
+        {successMessage ? (
+          <div className={`${styles.stepCard} ${styles.statusCard} ${styles.statusSuccess}`} role="status">
+            <span className={styles.statusIcon} aria-hidden>
+              ✓
+            </span>
+            <div>
+              <p className={styles.statusTitle}>Goal saved</p>
+              <p className={styles.supportText}>{successMessage}</p>
+            </div>
+          </div>
+        ) : null}
+        {errorMessage ? (
+          <div className={`${styles.stepCard} ${styles.statusCard} ${styles.statusError}`} role="alert">
+            <span className={styles.statusIcon} aria-hidden>
+              !
+            </span>
+            <div>
+              <p className={styles.statusTitle}>Unable to save</p>
+              <p className={styles.supportText}>{errorMessage}</p>
+            </div>
+          </div>
+        ) : null}
       </div>
     </StepCard>
   );
