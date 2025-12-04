@@ -40,7 +40,9 @@ export function GoalWizard({ uid }: GoalWizardProps) {
   const [smart, setSmart] = useState<SmartFields>({ ...initialSmart });
   const [actions, setActions] = useState<ActionPlanItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const userId = uid || "demo-user";
 
   const progressTitle = useMemo(() => {
@@ -62,6 +64,7 @@ export function GoalWizard({ uid }: GoalWizardProps) {
     if (!goalTitle.trim()) return;
     setLoading(true);
     setError(null);
+    setSuccess(null);
     try {
       const generated = await generateQuestions(goalTitle.trim());
       setQuestions(generated);
@@ -77,6 +80,7 @@ export function GoalWizard({ uid }: GoalWizardProps) {
   const handleGenerateSmart = async () => {
     setLoading(true);
     setError(null);
+    setSuccess(null);
     try {
       const { goalTitle: generatedTitle, smart: generatedSmart } = await generateSmart(goalTitle.trim(), answers);
       setGoalTitle(generatedTitle || goalTitle);
@@ -92,6 +96,7 @@ export function GoalWizard({ uid }: GoalWizardProps) {
   const handleGenerateActions = async () => {
     setLoading(true);
     setError(null);
+    setSuccess(null);
     try {
       const generatedActions = await generateActions(goalTitle.trim(), smart);
       setActions(generatedActions);
@@ -106,6 +111,7 @@ export function GoalWizard({ uid }: GoalWizardProps) {
   const handleGenerateMoreActions = async () => {
     setLoading(true);
     setError(null);
+    setSuccess(null);
     try {
       const generatedActions = await generateMoreActions(goalTitle.trim(), smart, actions);
       setActions((current) => {
@@ -123,28 +129,51 @@ export function GoalWizard({ uid }: GoalWizardProps) {
   };
 
   const handleSave = async () => {
-    setLoading(true);
+    setSaving(true);
     setError(null);
+    setSuccess(null);
     try {
+      const trimmedSmart: SmartFields = {
+        specific: smart.specific.trim(),
+        measurable: smart.measurable.trim(),
+        achievable: smart.achievable.trim(),
+        relevant: smart.relevant.trim(),
+        timebound: smart.timebound.trim(),
+      };
+
       const payload: SaveGoalPayload = {
         uid: userId,
         goalTitle: goalTitle.trim(),
-        smart,
-        actions,
+        smart: trimmedSmart,
+        actions: actions.map((action) => ({
+          ...action,
+          title: action.title.trim(),
+          userDeadline: (action.userDeadline || "").trim(),
+        })),
         questions,
         createdAt: new Date().toISOString(),
       };
 
+      const hasSmartGaps = Object.values(trimmedSmart).some((value) => !value);
       if (!payload.goalTitle) {
         throw new Error("Goal title is required before saving.");
+      }
+
+      if (hasSmartGaps) {
+        throw new Error("Please complete your SMART details before saving.");
       }
 
       if (payload.actions.length === 0) {
         throw new Error("Generate actions before saving.");
       }
 
+      const hasValidActionTitles = payload.actions.every((action) => action.title.length > 0);
+      if (!hasValidActionTitles) {
+        throw new Error("Please add a title for each action before saving.");
+      }
+
       const hasValidDates = payload.actions.every((action) => {
-        const deadline = (action.userDeadline || "").trim();
+        const deadline = action.userDeadline;
         return deadline && !Number.isNaN(new Date(deadline).getTime());
       });
 
@@ -152,12 +181,17 @@ export function GoalWizard({ uid }: GoalWizardProps) {
         throw new Error("Please add a calendar date for each action.");
       }
 
-      await saveGoalData(payload);
+      const response = await saveGoalData(payload);
+      if (!response.success) {
+        throw new Error(response.error || "Unable to save your goal.");
+      }
+
+      setSuccess("Your goal plan has been saved. You can revisit it anytime in your dashboard.");
       setError(null);
     } catch (apiError) {
       setError(apiError instanceof Error ? apiError.message : "Unable to save your goal.");
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -165,7 +199,12 @@ export function GoalWizard({ uid }: GoalWizardProps) {
     switch (step) {
       case 1:
         return (
-          <Step1Goal goalTitle={goalTitle} onGoalTitleChange={setGoalTitle} onNext={handleGenerateQuestions} loading={loading} />
+          <Step1Goal
+            goalTitle={goalTitle}
+            onGoalTitleChange={setGoalTitle}
+            onNext={handleGenerateQuestions}
+            loading={loading}
+          />
         );
       case 2:
         return (
@@ -201,6 +240,7 @@ export function GoalWizard({ uid }: GoalWizardProps) {
             onGenerateMore={handleGenerateMoreActions}
             onSave={handleSave}
             loading={loading}
+            saving={saving}
           />
         );
       default:
@@ -216,9 +256,26 @@ export function GoalWizard({ uid }: GoalWizardProps) {
           <StepTitle>{progressTitle}</StepTitle>
           <StepDescription>Follow the 4-step flow to turn your intention into an action-ready plan.</StepDescription>
         </div>
+        {success ? (
+          <div className={`${styles.stepCard} ${styles.statusCard} ${styles.statusSuccess}`} role="status">
+            <span className={styles.statusIcon} aria-hidden>
+              ✓
+            </span>
+            <div>
+              <p className={styles.statusTitle}>Goal saved</p>
+              <p className={styles.supportText}>{success}</p>
+            </div>
+          </div>
+        ) : null}
         {error ? (
-          <div className={`${styles.stepCard} ${styles.textFieldError}`}>
-            <p className={styles.supportText}>{error}</p>
+          <div className={`${styles.stepCard} ${styles.statusCard} ${styles.statusError}`} role="alert">
+            <span className={styles.statusIcon} aria-hidden>
+              !
+            </span>
+            <div>
+              <p className={styles.statusTitle}>Unable to save</p>
+              <p className={styles.supportText}>{error}</p>
+            </div>
           </div>
         ) : null}
         <div key={step} className={styles.fadeSlideIn}>
