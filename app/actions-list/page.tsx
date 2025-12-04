@@ -12,9 +12,10 @@ import styles from "../../components/md3/md3.module.css";
 type ActionItem = {
   id: string;
   title: string;
+  description: string;   // <-- NEW
   deadline: string;
   status: "pending" | "done";
-  };
+};
 
 export default function ActionsListPage() {
   const { user } = useAuth();
