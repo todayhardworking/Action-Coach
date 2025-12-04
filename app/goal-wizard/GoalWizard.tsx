@@ -152,6 +152,7 @@ export function GoalWizard({ uid }: GoalWizardProps) {
         actions: actions.map((action) => ({
           ...action,
           title: action.title.trim(),
+          description: (action.description || "").trim(),
           userDeadline: (action.userDeadline || "").trim(),
         })),
         questions,
@@ -174,6 +175,11 @@ export function GoalWizard({ uid }: GoalWizardProps) {
       const hasValidActionTitles = payload.actions.every((action) => action.title.length > 0);
       if (!hasValidActionTitles) {
         throw new Error("Please add a title for each action before saving.");
+      }
+
+      const hasValidActionDescriptions = payload.actions.every((action) => action.description.length > 0);
+      if (!hasValidActionDescriptions) {
+        throw new Error("Please add a description for each action before saving.");
       }
 
       const hasValidDates = payload.actions.every((action) => {

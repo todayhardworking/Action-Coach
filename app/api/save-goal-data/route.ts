@@ -16,7 +16,7 @@ type SmartDetails = {
 type ActionItem = {
   title: string;
   deadline: string;
-  description?: string;
+  description: string;
 };
 
 type SaveGoalRequest = {
@@ -55,7 +55,8 @@ function isValidActions(actions: ActionItem[] | undefined): actions is ActionIte
       action.title.trim().length > 0 &&
       typeof action?.deadline === 'string' &&
       action.deadline.trim().length > 0 &&
-      (action.description === undefined || typeof action.description === 'string')
+      typeof action.description === 'string' &&
+      action.description.trim().length > 0
   );
 }
 
@@ -135,7 +136,7 @@ export async function POST(request: Request) {
 
       batch.set(actionRef, {
         title: action.title.trim(),
-        description: action.description?.trim() || '',
+        description: action.description.trim(),
         deadline: Timestamp.fromDate(deadlineDate),
         status: 'pending',
         targetId,
