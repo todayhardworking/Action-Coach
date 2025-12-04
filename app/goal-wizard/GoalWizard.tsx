@@ -177,7 +177,9 @@ export function GoalWizard({ uid }: GoalWizardProps) {
         throw new Error("Please add a title for each action before saving.");
       }
 
-      const hasValidActionDescriptions = payload.actions.every((action) => action.description.length > 0);
+      const hasValidActionDescriptions = payload.actions.every(
+        (action) => (action.description ?? "").length > 0,
+      );
       if (!hasValidActionDescriptions) {
         throw new Error("Please add a description for each action before saving.");
       }
