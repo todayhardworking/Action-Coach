@@ -26,8 +26,8 @@ const features = [
   {
     title: "View Actions List",
     description: "Review the action steps across all of your goals to keep work moving forward.",
-    href: null,
-    status: "In development",
+    href: "/actions-list",
+    status: "Available now",
     cta: "View actions",
   },
   {
