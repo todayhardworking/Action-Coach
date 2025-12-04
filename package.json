@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "node --test --loader ./ts-test-loader.mjs __tests__/goalWizardApi.test.ts"
   },
   "dependencies": {
     "firebase-admin": "^12.5.0",
