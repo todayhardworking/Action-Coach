@@ -252,16 +252,23 @@ export default function GoalWizardLayout() {
     resetError,
   };
 
-  const stepContent = [
-    <Step1GoalTitle key="step-1" />,
-    <Step2Questions key="step-2" />,
-    <Step3Smart key="step-3" />,
-    <Step4Actions key="step-4" />,
-  ];
+  const renderStepContent = () => {
+    switch (step) {
+      case 1:
+        return <Step1GoalTitle />;
+      case 2:
+        return <Step2Questions />;
+      case 3:
+        return <Step3Smart />;
+      case 4:
+      default:
+        return <Step4Actions />;
+    }
+  };
 
   return (
     <WizardContext.Provider value={contextValue}>
-      <main className="min-h-screen bg-neutral-100 font-[\"SF Pro Text\",system-ui,-apple-system,\"Segoe UI\",sans-serif] text-neutral-900">
+      <main className='min-h-screen bg-neutral-100 font-["SF Pro Text",system-ui,-apple-system,"Segoe UI",sans-serif] text-neutral-900'>
         <div className="mx-auto flex max-w-xl flex-col gap-4 px-4 pb-24 pt-10 sm:pt-12">
           <header className="space-y-2">
             <p className="text-sm font-medium text-[#007AFF]">Goal Wizard</p>
@@ -280,7 +287,7 @@ export default function GoalWizardLayout() {
           ) : null}
           <div className="relative overflow-hidden rounded-3xl bg-white shadow-[0_10px_30px_rgba(0,0,0,0.05)] transition-all duration-300">
             <div className="border-b border-neutral-200 px-5 py-4 text-sm text-neutral-500">Step {step} of 4</div>
-            <div className="p-5 sm:p-6 transition-all duration-300 ease-in-out">{stepContent[step - 1]}</div>
+            <div className="p-5 sm:p-6 transition-all duration-300 ease-in-out">{renderStepContent()}</div>
           </div>
         </div>
       </main>
