@@ -1,3 +1,5 @@
+import { auth } from "./firebaseClient";
+
 export type SmartFields = {
   specific: string;
   measurable: string;
@@ -73,10 +75,23 @@ async function handleJson<T>(response: Response): Promise<T> {
   return data;
 }
 
+async function buildAuthHeaders(additional: HeadersInit = {}) {
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    throw new Error("You must be signed in to continue.");
+  }
+
+  const token = await currentUser.getIdToken();
+  return {
+    ...additional,
+    Authorization: `Bearer ${token}`,
+  };
+}
+
 export async function generateQuestions(goalTitle: string) {
   const response = await fetch("/api/generate-questions", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await buildAuthHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({ userInput: goalTitle }),
   });
 
@@ -87,7 +102,7 @@ export async function generateQuestions(goalTitle: string) {
 export async function generateSmart(goalTitle: string, answers: string[]) {
   const response = await fetch("/api/generate-smart", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await buildAuthHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({ userInput: goalTitle, answers }),
   });
 
@@ -98,7 +113,7 @@ export async function generateSmart(goalTitle: string, answers: string[]) {
 export async function generateActions(goalTitle: string, smart: SmartFields) {
   const response = await fetch("/api/generate-actions", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await buildAuthHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({ goalTitle, smart: toApiSmart(smart) }),
   });
 
@@ -113,7 +128,7 @@ export async function generateMoreActions(
 ) {
   const response = await fetch("/api/generate-more-actions", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await buildAuthHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({
       goalTitle,
       smart: toApiSmart(smart),
@@ -140,7 +155,7 @@ export interface SaveGoalPayload {
 export async function saveGoalData(payload: SaveGoalPayload) {
   const response = await fetch("/api/save-goal-data", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await buildAuthHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({
       userId: payload.uid,
       goalTitle: payload.goalTitle,

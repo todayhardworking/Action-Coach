@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
 import { Timestamp } from 'firebase-admin/firestore';
 import { getAdminDb } from '../../../../lib/firebaseAdmin';
+import { requireAuthenticatedUser } from '../../../../lib/authServer';
+import { toSafeDate } from '../../../../lib/firestoreTimestamps';
 
 type ListActionsRequest = {
   userId?: string;
+  targetId?: string;
 };
 
 type ActionResponse = {
@@ -17,6 +20,11 @@ type ActionResponse = {
 };
 
 export async function POST(request: Request) {
+  const authResult = await requireAuthenticatedUser(request);
+  if ('response' in authResult) {
+    return authResult.response;
+  }
+
   let body: ListActionsRequest;
 
   try {
@@ -25,28 +33,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 });
   }
 
-  const userId = typeof body.userId === 'string' ? body.userId.trim() : '';
-
-  if (!userId) {
-    return NextResponse.json({ error: 'userId is required.' }, { status: 400 });
-  }
+  const targetId = typeof body.targetId === 'string' ? body.targetId.trim() : '';
 
   try {
     const db = getAdminDb();
-    const snapshot = await db
-      .collection('actions')
-      .where('userId', '==', userId)
-      .orderBy('deadline', 'asc')
-      .get();
+    let query = db.collection('actions').where('userId', '==', authResult.uid);
+
+    if (targetId) {
+      query = query.where('targetId', '==', targetId);
+    }
+
+    query = query.orderBy('deadline', 'asc');
+
+    const snapshot = await query.get();
 
     const actions: Omit<ActionResponse, 'goalTitle'>[] = snapshot.docs.map((doc) => {
       const data = doc.data();
 
       const deadlineValue = data.deadline;
-      const deadline =
-        deadlineValue instanceof Timestamp
-          ? deadlineValue.toDate().toISOString()
-          : '';
+      let deadline = '';
+
+      if (deadlineValue instanceof Timestamp) {
+        deadline = deadlineValue.toDate().toISOString();
+      } else if (typeof deadlineValue === 'string') {
+        deadline = deadlineValue;
+      } else {
+        const deadlineDate = toSafeDate(deadlineValue);
+        deadline = deadlineDate ? deadlineDate.toISOString() : '';
+      }
 
       return {
         id: doc.id,

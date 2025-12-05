@@ -1,4 +1,5 @@
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 
 type FirebaseAdminConfig = {
@@ -19,7 +20,7 @@ function getAdminConfig(): FirebaseAdminConfig {
   return { projectId, clientEmail, privateKey };
 }
 
-export function getAdminDb() {
+function getAdminApp() {
   if (getApps().length === 0) {
     const { projectId, clientEmail, privateKey } = getAdminConfig();
     initializeApp({
@@ -31,5 +32,15 @@ export function getAdminDb() {
     });
   }
 
-  return getFirestore();
+  return getApps()[0];
+}
+
+export function getAdminDb() {
+  const app = getAdminApp();
+  return getFirestore(app);
+}
+
+export function getAdminAuth() {
+  const app = getAdminApp();
+  return getAuth(app);
 }
