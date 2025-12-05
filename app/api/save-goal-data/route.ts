@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { getAdminDb } from '../../../lib/firebaseAdmin';
+import { requireAuthenticatedUser } from '../../../lib/authServer';
 
 //
 // ---------- Types ----------
@@ -74,6 +75,11 @@ function parseDeadline(deadline: string): Date | null {
 // ---------- Main API ----------
 //
 export async function POST(request: Request) {
+  const authResult = await requireAuthenticatedUser(request);
+  if ('response' in authResult) {
+    return authResult.response;
+  }
+
   let body: SaveGoalRequest;
 
   // Parse JSON safely
@@ -87,8 +93,8 @@ export async function POST(request: Request) {
   // Required Fields
   //
   const userId = typeof body.userId === 'string' ? body.userId.trim() : '';
-  if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized: userId is required.' }, { status: 403 });
+  if (!userId || userId !== authResult.uid) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const goalTitle = typeof body.goalTitle === 'string' ? body.goalTitle.trim() : '';
@@ -125,6 +131,7 @@ export async function POST(request: Request) {
       userId,
       smart,
       createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     });
 
     // Create action documents
@@ -142,6 +149,7 @@ export async function POST(request: Request) {
         targetId,
         userId,
         createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
       });
     });
 

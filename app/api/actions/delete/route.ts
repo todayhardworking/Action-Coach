@@ -1,11 +1,17 @@
 import { NextResponse } from 'next/server';
 import { getAdminDb } from '../../../../lib/firebaseAdmin';
+import { requireAuthenticatedUser } from '../../../../lib/authServer';
 
 type DeleteActionRequest = {
   actionId?: string;
 };
 
 export async function POST(request: Request) {
+  const authResult = await requireAuthenticatedUser(request);
+  if ('response' in authResult) {
+    return authResult.response;
+  }
+
   let body: DeleteActionRequest;
 
   try {
@@ -22,7 +28,19 @@ export async function POST(request: Request) {
 
   try {
     const db = getAdminDb();
-    await db.collection('actions').doc(actionId).delete();
+    const actionRef = db.collection('actions').doc(actionId);
+    const actionDoc = await actionRef.get();
+
+    if (!actionDoc.exists) {
+      return NextResponse.json({ error: 'Action not found.' }, { status: 404 });
+    }
+
+    const data = actionDoc.data();
+    if (data?.userId !== authResult.uid) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    await actionRef.delete();
 
     return NextResponse.json({ success: true });
   } catch (error) {
