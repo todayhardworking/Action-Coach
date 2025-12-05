@@ -16,10 +16,23 @@
   --md3-radius-button: 16px;
   --md3-duration: 180ms;
   --md3-ease: cubic-bezier(0.2, 0.0, 0.0, 1);
+  --global-header-height: 72px;
 }
 
 body {
   margin: 0;
+  background: var(--md3-surface);
+  color: var(--md3-on-surface);
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: var(--md3-surface);
+}
+
+.page-with-header {
+  padding-top: var(--global-header-height);
 }
 
 .auth-loading {

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import './globals.css';
 import { AuthProvider } from '../components/auth/AuthProvider';
+import { GlobalHeader } from '../components/layout/GlobalHeader';
 
 export const metadata = {
   title: 'Action Coach',
@@ -10,8 +11,11 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>
-        <AuthProvider>{children}</AuthProvider>
+      <body className="app-shell">
+        <AuthProvider>
+          <GlobalHeader />
+          <main className="page-with-header">{children}</main>
+        </AuthProvider>
       </body>
     </html>
   );
