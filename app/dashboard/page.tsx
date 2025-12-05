@@ -18,7 +18,7 @@ const features = [
   {
     title: "View Goals List",
     description: "See every goal you've created and jump back into the details when you're ready.",
-    href: null,
+    href: "/goals-list",
     cta: "View goals",
   },
   {
