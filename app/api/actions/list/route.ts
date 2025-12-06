@@ -89,7 +89,9 @@ export async function POST(request: Request) {
           data.repeatConfig && typeof data.repeatConfig === 'object'
             ? {
                 onDays: Array.isArray(data.repeatConfig.onDays)
-                  ? data.repeatConfig.onDays.filter((value): value is string => typeof value === 'string')
+                  ? data.repeatConfig.onDays.filter(
+                      (value: unknown): value is string => typeof value === 'string'
+                    )
                   : undefined,
                 dayOfMonth:
                   typeof data.repeatConfig.dayOfMonth === 'number'
