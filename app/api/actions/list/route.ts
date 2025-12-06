@@ -12,11 +12,16 @@ type ListActionsRequest = {
 type ActionResponse = {
   id: string;
   title: string;
-  description: string;  // <-- NEW
+  description: string;
   deadline: string;
+  userDeadline?: string;
   status: 'pending' | 'done';
   targetId: string;
   goalTitle: string;
+  frequency?: string;
+  repeatConfig?: { onDays?: string[]; dayOfMonth?: number };
+  completedDates?: string[];
+  createdAt?: string;
 };
 
 export async function POST(request: Request) {
@@ -43,35 +48,67 @@ export async function POST(request: Request) {
       query = query.where('targetId', '==', targetId);
     }
 
-    query = query.orderBy('deadline', 'asc');
+    query = query.orderBy('userDeadline', 'asc');
 
     const snapshot = await query.get();
 
-    const actions: Omit<ActionResponse, 'goalTitle'>[] = snapshot.docs.map((doc) => {
-      const data = doc.data();
-
-      const deadlineValue = data.deadline;
-      let deadline = '';
-
-      if (deadlineValue instanceof Timestamp) {
-        deadline = deadlineValue.toDate().toISOString();
-      } else if (typeof deadlineValue === 'string') {
-        deadline = deadlineValue;
-      } else {
-        const deadlineDate = toSafeDate(deadlineValue);
-        deadline = deadlineDate ? deadlineDate.toISOString() : '';
+    const normalizeDate = (value: unknown): string => {
+      if (value instanceof Timestamp) {
+        return value.toDate().toISOString();
       }
 
-      return {
-        id: doc.id,
-        title: typeof data.title === 'string' ? data.title : '',
-        description:
-          typeof data.description === 'string' ? data.description : '', // <-- NEW FIELD
-        deadline,
-        status: data.status === 'done' ? 'done' : 'pending',
-        targetId: typeof data.targetId === 'string' ? data.targetId : '',
-      };
-    });
+      if (typeof value === 'string') {
+        return value;
+      }
+
+      const safeDate = toSafeDate(value);
+      return safeDate ? safeDate.toISOString() : '';
+    };
+
+    const actions: Omit<ActionResponse, 'goalTitle'>[] = snapshot.docs
+      .map((doc) => {
+        const data = doc.data();
+
+        if (data.isArchived) return null;
+
+        const deadline = normalizeDate(data.deadline);
+        const userDeadline = normalizeDate(data.userDeadline);
+        const createdAt = normalizeDate(data.createdAt);
+
+        const completedDates = Array.isArray(data.completedDates)
+          ? data.completedDates
+              .map((date) => normalizeDate(date))
+              .filter((date): date is string => Boolean(date))
+          : [];
+
+        const repeatConfig =
+          data.repeatConfig && typeof data.repeatConfig === 'object'
+            ? {
+                onDays: Array.isArray(data.repeatConfig.onDays)
+                  ? data.repeatConfig.onDays.filter((value): value is string => typeof value === 'string')
+                  : undefined,
+                dayOfMonth:
+                  typeof data.repeatConfig.dayOfMonth === 'number'
+                    ? data.repeatConfig.dayOfMonth
+                    : undefined,
+              }
+            : undefined;
+
+        return {
+          id: doc.id,
+          title: typeof data.title === 'string' ? data.title : '',
+          description: typeof data.description === 'string' ? data.description : '',
+          deadline,
+          userDeadline,
+          status: data.status === 'done' ? 'done' : 'pending',
+          targetId: typeof data.targetId === 'string' ? data.targetId : '',
+          frequency: typeof data.frequency === 'string' ? data.frequency : undefined,
+          repeatConfig,
+          completedDates,
+          createdAt,
+        };
+      })
+      .filter((action): action is Omit<ActionResponse, 'goalTitle'> => Boolean(action));
 
     const uniqueTargetIds = Array.from(new Set(actions.map((action) => action.targetId).filter(Boolean)));
 
