@@ -61,7 +61,11 @@ export async function POST(request: Request) {
         return value;
       }
 
-      const safeDate = toSafeDate(value);
+      const timestampLike =
+        value && typeof value === 'object' && 'toDate' in value
+          ? (value as { toDate?: () => Date })
+          : null;
+      const safeDate = toSafeDate(timestampLike);
       return safeDate ? safeDate.toISOString() : '';
     };
 
