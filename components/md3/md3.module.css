@@ -176,11 +176,11 @@
 .filledButton,
 .tonalButton {
   border: none;
-  padding: 14px 18px;
+  padding: 10px 13px;
   border-radius: var(--md3-radius-button);
   font-weight: 700;
-  font-size: 16px;
-  line-height: 24px;
+  font-size: 14px;
+  line-height: 20px;
   cursor: pointer;
   width: 100%;
   transition: transform var(--md3-duration) var(--md3-ease),
@@ -961,6 +961,24 @@
     flex-direction: row;
     align-items: flex-start;
     gap: 40px;
+  }
+
+  .heroCard {
+    margin-top: 0;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 959px) {
+  .heroSection .contentContainer {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 28px;
+  }
+
+  .heroContent,
+  .heroCard {
+    flex: 1 1 320px;
   }
 
   .heroCard {
