@@ -183,8 +183,10 @@ function extractActions(content: string, fallbackTargetId: string): ActionSugges
     try {
       const parsed = JSON.parse(text) as Partial<GenerateActionsResponse>;
       if (Array.isArray(parsed.actions)) {
+        const parsedActions = parsed.actions as unknown[];
+
         return sanitizeActions(
-          parsed.actions.filter(
+          parsedActions.filter(
             (item): item is Partial<ActionSuggestion> => typeof item === 'object' && item !== null,
           ),
           fallbackTargetId,
