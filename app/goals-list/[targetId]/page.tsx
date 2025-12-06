@@ -43,6 +43,7 @@ export default function GoalDetailPage() {
   const [loadingActions, setLoadingActions] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [expandedActionIds, setExpandedActionIds] = useState<Set<string>>(new Set());
 
   const getAuthHeaders = useCallback(async () => {
     if (!user) return null;
@@ -233,6 +234,18 @@ export default function GoalDetailPage() {
     };
   }, [actions]);
 
+  const toggleExpanded = useCallback((actionId: string) => {
+    setExpandedActionIds((current) => {
+      const next = new Set(current);
+      if (next.has(actionId)) {
+        next.delete(actionId);
+      } else {
+        next.add(actionId);
+      }
+      return next;
+    });
+  }, []);
+
   const isBusy = (actionId: string) => processingId === actionId;
 
   const showLoading = loadingTarget || loadingActions;
@@ -316,11 +329,24 @@ export default function GoalDetailPage() {
                       <div className="flex flex-col gap-2">
                         <div className={styles.badge}>Deadline · {action.deadlineDisplay}</div>
 
-                        <h2 className="text-xl font-semibold text-gray-900">{action.title}</h2>
+                        <button
+                          type="button"
+                          onClick={() => toggleExpanded(action.id)}
+                          className="text-left text-xl font-semibold text-gray-900"
+                          aria-expanded={expandedActionIds.has(action.id)}
+                          aria-controls={`action-description-${action.id}`}
+                        >
+                          {action.title}
+                        </button>
 
-                        {action.description && (
-                          <p className="text-sm text-gray-600 leading-snug">{action.description}</p>
-                        )}
+                        {action.description && expandedActionIds.has(action.id) ? (
+                          <p
+                            id={`action-description-${action.id}`}
+                            className="text-sm text-gray-600 leading-snug"
+                          >
+                            {action.description}
+                          </p>
+                        ) : null}
 
                         <div className="flex items-center gap-2">
                           <span
