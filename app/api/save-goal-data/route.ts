@@ -129,42 +129,42 @@ function sanitizeActions(actions: unknown[] | undefined): SanitizedAction[] {
 
   const now = new Date();
 
-  return actions
-    .map((rawAction, index) => {
-      if (!rawAction || typeof rawAction !== 'object') return null;
+  return actions.reduce<SanitizedAction[]>((sanitized, rawAction, index) => {
+    if (!rawAction || typeof rawAction !== 'object') return sanitized;
 
-      const action = rawAction as ActionItem;
-      const title = sanitizeText(action.title);
-      const deadlineDate = parseTimestamp(action.userDeadline);
-      if (!title || !deadlineDate) return null;
+    const action = rawAction as ActionItem;
+    const title = sanitizeText(action.title);
+    const deadlineDate = parseTimestamp(action.userDeadline);
+    if (!title || !deadlineDate) return sanitized;
 
-      const frequency = sanitizeFrequency(action.frequency);
-      const repeatConfig = sanitizeRepeatConfig(action.repeatConfig);
-      const createdAtDate = parseTimestamp(action.createdAt) ?? now;
+    const frequency = sanitizeFrequency(action.frequency);
+    const repeatConfig = sanitizeRepeatConfig(action.repeatConfig);
+    const createdAtDate = parseTimestamp(action.createdAt) ?? now;
 
-      const completedDates = Array.isArray(action.completedDates)
-        ? action.completedDates
-            .map((date) => parseTimestamp(date))
-            .filter((date): date is Date => Boolean(date))
-            .map((date) => Timestamp.fromDate(date))
-        : [];
+    const completedDates = Array.isArray(action.completedDates)
+      ? action.completedDates
+          .map((date) => parseTimestamp(date))
+          .filter((date): date is Date => Boolean(date))
+          .map((date) => Timestamp.fromDate(date))
+      : [];
 
-      const description = sanitizeText(action.description);
+    const description = sanitizeText(action.description);
 
-      return {
-        actionId: sanitizeText(action.actionId) || crypto.randomUUID(),
-        title,
-        description: description || undefined,
-        frequency,
-        repeatConfig,
-        order: typeof action.order === 'number' ? action.order : index + 1,
-        completedDates,
-        isArchived: action.isArchived === true,
-        createdAt: Timestamp.fromDate(createdAtDate),
-        deadline: Timestamp.fromDate(deadlineDate),
-      } satisfies SanitizedAction;
-    })
-    .filter((action): action is SanitizedAction => action !== null);
+    sanitized.push({
+      actionId: sanitizeText(action.actionId) || crypto.randomUUID(),
+      title,
+      description: description || undefined,
+      frequency,
+      repeatConfig,
+      order: typeof action.order === 'number' ? action.order : index + 1,
+      completedDates,
+      isArchived: action.isArchived === true,
+      createdAt: Timestamp.fromDate(createdAtDate),
+      deadline: Timestamp.fromDate(deadlineDate),
+    });
+
+    return sanitized;
+  }, []);
 }
 
 //
