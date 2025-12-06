@@ -8,10 +8,22 @@ export type SmartFields = {
   timebound: string;
 };
 
+export type RepeatConfig = {
+  onDays?: string[];
+  dayOfMonth?: number;
+};
+
 export type ActionPlanItem = {
+  actionId: string;
+  targetId: string;
   title: string;
   description?: string;
-  recommendedDeadline?: string;
+  frequency: "daily" | "weekly" | "monthly" | "once";
+  repeatConfig?: RepeatConfig;
+  order?: number;
+  completedDates: string[];
+  isArchived: boolean;
+  createdAt: string;
   userDeadline?: string;
 };
 
@@ -33,11 +45,7 @@ interface GenerateSmartResponse {
 }
 
 interface GenerateActionsResponse {
-  actions: {
-    title: string;
-    description?: string;
-    recommendedDeadline?: string;
-  }[];
+  actions: ActionPlanItem[];
   error?: string;
 }
 
@@ -118,7 +126,11 @@ export async function generateActions(goalTitle: string, smart: SmartFields) {
   });
 
   const data = await handleJson<GenerateActionsResponse>(response);
-  return data.actions.map((action) => ({ ...action, userDeadline: "" }));
+  return data.actions.map((action, index) => ({
+    ...action,
+    order: action.order ?? index + 1,
+    userDeadline: "",
+  }));
 }
 
 export async function generateMoreActions(
@@ -140,7 +152,11 @@ export async function generateMoreActions(
   });
 
   const data = await handleJson<GenerateActionsResponse>(response);
-  return data.actions.map((action) => ({ ...action, userDeadline: "" }));
+  return data.actions.map((action, index) => ({
+    ...action,
+    order: action.order ?? index + 1,
+    userDeadline: "",
+  }));
 }
 
 export interface SaveGoalPayload {
