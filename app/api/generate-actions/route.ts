@@ -155,18 +155,22 @@ function sanitizeActions(actions: Partial<ActionSuggestion>[], fallbackTargetId:
             .filter((date): date is string => Boolean(date))
         : [];
 
-      return {
+      const description = sanitizeText(action.description);
+
+      const cleanedAction: ActionSuggestion = {
         actionId: sanitizeText(action.actionId) || crypto.randomUUID(),
         targetId: sanitizeText(action.targetId) || fallbackTargetId,
         title,
-        description: sanitizeText(action.description) || undefined,
         frequency,
-        repeatConfig,
         order: typeof action.order === 'number' ? action.order : index + 1,
         completedDates,
         isArchived: Boolean(action.isArchived) && action.isArchived === true ? true : false,
         createdAt,
-      } satisfies ActionSuggestion;
+        ...(description ? { description } : {}),
+        ...(repeatConfig ? { repeatConfig } : {}),
+      };
+
+      return cleanedAction;
     })
     .filter((action): action is ActionSuggestion => action !== null)
     .slice(0, 10);
