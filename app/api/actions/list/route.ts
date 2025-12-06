@@ -69,7 +69,7 @@ export async function POST(request: Request) {
       return safeDate ? safeDate.toISOString() : '';
     };
 
-    const actions: Omit<ActionResponse, 'goalTitle'>[] = snapshot.docs
+    const mappedActions = snapshot.docs
       .map((doc) => {
         const data = doc.data();
 
@@ -113,6 +113,8 @@ export async function POST(request: Request) {
         };
       })
       .filter((action): action is Omit<ActionResponse, 'goalTitle'> => Boolean(action));
+
+    const actions: Omit<ActionResponse, 'goalTitle'>[] = mappedActions;
 
     const uniqueTargetIds = Array.from(new Set(actions.map((action) => action.targetId).filter(Boolean)));
 
