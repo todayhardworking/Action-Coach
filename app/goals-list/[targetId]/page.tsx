@@ -11,14 +11,24 @@ import { StepTitle } from "../../../components/md3/StepTitle";
 import styles from "../../../components/md3/md3.module.css";
 import type { TargetDocument } from "../../../lib/targets";
 
+type RepeatConfig = {
+  onDays?: string[];
+  dayOfMonth?: number;
+};
+
 type ActionItem = {
   id: string;
   title: string;
   description: string;
-  deadline: string;
+  deadline?: string;
+  userDeadline?: string;
   status: "pending" | "done";
   goalTitle: string;
   targetId: string;
+  frequency?: string;
+  repeatConfig?: RepeatConfig;
+  completedDates?: string[];
+  createdAt?: string;
 };
 
 function formatDate(value: string | null | undefined) {
@@ -207,12 +217,39 @@ export default function GoalDetailPage() {
   const formattedActions = useMemo(
     () =>
       actions.map((action) => {
-        const date = new Date(action.deadline);
-        const deadlineDisplay = Number.isNaN(date.getTime())
-          ? action.deadline
-          : date.toLocaleDateString();
+        const rawDeadline = action.userDeadline || action.deadline;
+        const parsedDeadline = rawDeadline ? new Date(rawDeadline) : null;
+        const deadlineDisplay =
+          parsedDeadline && !Number.isNaN(parsedDeadline.getTime())
+            ? parsedDeadline.toLocaleDateString()
+            : rawDeadline || "—";
 
-        return { ...action, deadlineDisplay };
+        const createdDate = action.createdAt ? new Date(action.createdAt) : null;
+        const createdDisplay =
+          createdDate && !Number.isNaN(createdDate.getTime())
+            ? createdDate.toLocaleDateString()
+            : "—";
+
+        const cadenceLabel = action.frequency
+          ? action.frequency.charAt(0).toUpperCase() + action.frequency.slice(1)
+          : "Once";
+
+        const repeatLabel = action.repeatConfig?.onDays?.length
+          ? `On ${action.repeatConfig.onDays.map((day) => day.toUpperCase()).join(", ")}`
+          : action.repeatConfig?.dayOfMonth
+            ? `On day ${action.repeatConfig.dayOfMonth}`
+            : "";
+
+        const completedCount = Array.isArray(action.completedDates) ? action.completedDates.length : 0;
+
+        return {
+          ...action,
+          deadlineDisplay,
+          cadenceLabel,
+          repeatLabel,
+          completedCount,
+          createdDisplay,
+        };
       }),
     [actions]
   );
@@ -222,7 +259,7 @@ export default function GoalDetailPage() {
     const doneCount = actions.filter((action) => action.status === "done").length;
 
     const nextDeadline = actions
-      .map((action) => new Date(action.deadline))
+      .map((action) => new Date(action.userDeadline || action.deadline || ""))
       .filter((date) => !Number.isNaN(date.getTime()))
       .sort((a, b) => a.getTime() - b.getTime())[0];
 
@@ -244,12 +281,6 @@ export default function GoalDetailPage() {
       setLoadingTarget(false);
     }
   }, [targetId]);
-
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  const toggleExpanded = (actionId: string) => {
-    setExpandedId((current) => (current === actionId ? null : actionId));
-  };
 
   return (
     <RequireAuth>
@@ -316,55 +347,66 @@ export default function GoalDetailPage() {
               </StepCard>
             ) : (
               formattedActions.map((action) => {
-                const isExpanded = expandedId === action.id;
-
                 return (
                   <StepCard key={action.id} elevated>
-                    <div className="flex flex-col gap-3">
-                      <button
-                        type="button"
-                        onClick={() => toggleExpanded(action.id)}
-                        className="flex w-full flex-col gap-2 text-left"
-                        aria-expanded={isExpanded}
-                      >
-                        <div className="flex items-center justify-between text-sm text-gray-700">
-                          <span>Deadline: {action.deadlineDisplay}</span>
-                          <span className="font-medium">Status: {action.status === "done" ? "Done" : "Pending"}</span>
-                        </div>
-                        <div className="flex items-center justify-between gap-3">
+                    <div className="flex flex-col gap-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="flex flex-col gap-1">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-gray-600">
+                            {action.goalTitle || target?.title || "Goal"}
+                          </p>
                           <h2 className="text-xl font-semibold text-gray-900">{action.title}</h2>
-                          <span aria-hidden className="text-lg text-gray-700">
-                            {isExpanded ? "▲" : "▼"}
-                          </span>
-                        </div>
-                      </button>
-
-                      {isExpanded ? (
-                        <div className="flex flex-col gap-3">
                           <p className="text-sm text-gray-700 leading-snug">
                             {action.description || "No description provided."}
                           </p>
-
-                          <div className={styles.actionsRow}>
-                            <button
-                              type="button"
-                              className={styles.filledButton}
-                              onClick={() => handleMarkDone(action.id)}
-                              disabled={isBusy(action.id) || action.status === "done"}
-                            >
-                              {processingId === action.id && action.status !== "done" ? "Updating..." : "Mark done"}
-                            </button>
-                            <button
-                              type="button"
-                              className={styles.tonalButton}
-                              onClick={() => handleDelete(action.id)}
-                              disabled={isBusy(action.id)}
-                            >
-                              {processingId === action.id && action.status === "done" ? "Removing..." : "Delete"}
-                            </button>
-                          </div>
                         </div>
-                      ) : null}
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                              action.status === "done"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-amber-100 text-amber-800"
+                            }`}
+                          >
+                            {action.status === "done" ? "Completed" : "Pending"}
+                          </span>
+                          <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-800">
+                            Due {action.deadlineDisplay}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 text-sm text-gray-700">
+                        <span className="rounded-full bg-gray-100 px-3 py-1 font-medium">
+                          Cadence: {action.cadenceLabel}
+                        </span>
+                        {action.repeatLabel ? (
+                          <span className="rounded-full bg-gray-100 px-3 py-1 font-medium">{action.repeatLabel}</span>
+                        ) : null}
+                        <span className="rounded-full bg-gray-100 px-3 py-1 font-medium">
+                          {action.completedCount} check-in{action.completedCount === 1 ? "" : "s"}
+                        </span>
+                        <span className="rounded-full bg-gray-100 px-3 py-1 font-medium">Created {action.createdDisplay}</span>
+                      </div>
+
+                      <div className={styles.actionsRow}>
+                        <button
+                          type="button"
+                          className={styles.filledButton}
+                          onClick={() => handleMarkDone(action.id)}
+                          disabled={isBusy(action.id) || action.status === "done"}
+                        >
+                          {processingId === action.id && action.status !== "done" ? "Updating..." : "Mark done"}
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.tonalButton}
+                          onClick={() => handleDelete(action.id)}
+                          disabled={isBusy(action.id)}
+                        >
+                          {processingId === action.id && action.status === "done" ? "Removing..." : "Delete"}
+                        </button>
+                      </div>
                     </div>
                   </StepCard>
                 );
