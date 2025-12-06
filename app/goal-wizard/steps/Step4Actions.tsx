@@ -9,9 +9,11 @@ import { StepTitle } from "../../../components/md3/StepTitle";
 import styles from "../../../components/md3/md3.module.css";
 import { ActionPlanItem } from "../../../lib/goalWizardApi";
 
+export type EditableActionField = "title" | "description" | "userDeadline";
+
 interface Step4ActionsProps {
   actions: ActionPlanItem[];
-  onUpdateAction: (index: number, key: keyof ActionPlanItem, value: string) => void;
+  onUpdateAction: (index: number, key: EditableActionField, value: string) => void;
   onDelete: (index: number) => void;
   onGenerateMore: () => void;
   onSave: () => void;
@@ -41,7 +43,7 @@ export function Step4Actions({
       </StepDescription>
       <div className={styles.contentStack}>
         {actions.map((action, index) => (
-          <div key={`${action.title}-${index}`} className={`${styles.actionCard} ${styles.fadeSlideIn}`}>
+          <div key={action.actionId || `${action.title}-${index}`} className={`${styles.actionCard} ${styles.fadeSlideIn}`}>
             <div className={styles.listRow}>
               <span className={styles.iconDot} aria-hidden />
               <span className={styles.inlineLabel}>Action {index + 1}</span>
@@ -65,7 +67,9 @@ export function Step4Actions({
                 onChange={(value) => onUpdateAction(index, "userDeadline", value)}
                 type="date"
               />
-              <div className={styles.chip}>Suggested: {action.recommendedDeadline || "Set your pace"}</div>
+              <div className={styles.chip}>
+                Suggested cadence: {action.frequency || "Set your pace"}
+              </div>
             </div>
             <div className={styles.reorderButtons}>
               <button

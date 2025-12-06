@@ -18,7 +18,7 @@ import {
 import { Step1Goal } from "./steps/Step1Goal";
 import { Step2Questions } from "./steps/Step2Questions";
 import { Step3Smart } from "./steps/Step3Smart";
-import { Step4Actions } from "./steps/Step4Actions";
+import { EditableActionField, Step4Actions } from "./steps/Step4Actions";
 
 const initialSmart: SmartFields = {
   specific: "",
@@ -245,7 +245,7 @@ export function GoalWizard({ uid }: GoalWizardProps) {
         return (
           <Step4Actions
             actions={actions}
-            onUpdateAction={(index, key, value) =>
+            onUpdateAction={(index, key: EditableActionField, value) =>
               setActions((current) => current.map((action, idx) => (idx === index ? { ...action, [key]: value } : action)))
             }
             onDelete={(index) => setActions((current) => current.filter((_, idx) => idx !== index))}

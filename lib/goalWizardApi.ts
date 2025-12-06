@@ -8,10 +8,21 @@ export type SmartFields = {
   timebound: string;
 };
 
+export type RepeatConfig = {
+  onDays?: string[];
+  dayOfMonth?: number;
+};
+
 export type ActionPlanItem = {
+  actionId: string;
+  targetId: string;
   title: string;
   description?: string;
-  recommendedDeadline?: string;
+  frequency: "daily" | "weekly" | "monthly" | "once";
+  repeatConfig?: RepeatConfig;
+  completedDates: string[];
+  isArchived: boolean;
+  createdAt: string;
   userDeadline?: string;
 };
 
@@ -33,11 +44,7 @@ interface GenerateSmartResponse {
 }
 
 interface GenerateActionsResponse {
-  actions: {
-    title: string;
-    description?: string;
-    recommendedDeadline?: string;
-  }[];
+  actions: ActionPlanItem[];
   error?: string;
 }
 
@@ -118,7 +125,10 @@ export async function generateActions(goalTitle: string, smart: SmartFields) {
   });
 
   const data = await handleJson<GenerateActionsResponse>(response);
-  return data.actions.map((action) => ({ ...action, userDeadline: "" }));
+  return data.actions.map((action) => ({
+    ...action,
+    userDeadline: "",
+  }));
 }
 
 export async function generateMoreActions(
@@ -140,7 +150,10 @@ export async function generateMoreActions(
   });
 
   const data = await handleJson<GenerateActionsResponse>(response);
-  return data.actions.map((action) => ({ ...action, userDeadline: "" }));
+  return data.actions.map((action) => ({
+    ...action,
+    userDeadline: "",
+  }));
 }
 
 export interface SaveGoalPayload {
@@ -161,9 +174,16 @@ export async function saveGoalData(payload: SaveGoalPayload) {
       goalTitle: payload.goalTitle,
       smart: toApiSmart(payload.smart),
       actions: payload.actions.map((action) => ({
+        actionId: action.actionId,
+        targetId: action.targetId,
         title: action.title,
-        deadline: action.userDeadline?.trim() || "",
         description: action.description?.trim() || "",
+        frequency: action.frequency,
+        repeatConfig: action.repeatConfig,
+        completedDates: action.completedDates,
+        isArchived: action.isArchived,
+        createdAt: action.createdAt,
+        userDeadline: action.userDeadline?.trim() || "",
       })),
     }),
   });

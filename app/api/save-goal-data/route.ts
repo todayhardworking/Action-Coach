@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { NextResponse } from 'next/server';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { getAdminDb } from '../../../lib/firebaseAdmin';
@@ -14,10 +15,24 @@ type SmartDetails = {
   timeBased: string;
 };
 
+type Frequency = 'daily' | 'weekly' | 'monthly' | 'once';
+
+type RepeatConfig = {
+  onDays?: string[];
+  dayOfMonth?: number;
+};
+
 type ActionItem = {
-  title: string;
-  deadline: string;
-  description: string;
+  actionId?: string;
+  targetId?: string;
+  title?: string;
+  description?: string;
+  frequency?: Frequency;
+  repeatConfig?: RepeatConfig;
+  completedDates?: (string | number)[];
+  isArchived?: boolean;
+  createdAt?: string | number;
+  userDeadline?: string;
 };
 
 type SaveGoalRequest = {
@@ -45,30 +60,108 @@ function isValidSmart(smart: SmartDetails | undefined): smart is SmartDetails {
   );
 }
 
-function isValidActions(actions: ActionItem[] | undefined): actions is ActionItem[] {
-  if (!Array.isArray(actions) || actions.length === 0) {
-    return false;
-  }
-
-  return actions.every(
-    (action) =>
-      typeof action?.title === 'string' &&
-      action.title.trim().length > 0 &&
-      typeof action?.deadline === 'string' &&
-      action.deadline.trim().length > 0 &&
-      typeof action.description === 'string' &&
-      action.description.trim().length > 0
-  );
+function sanitizeText(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
 }
 
-function parseDeadline(deadline: string): Date | null {
-  // Ensure a valid ISO format
-  const normalized = deadline.includes('T')
-    ? deadline
-    : `${deadline}T00:00:00.000Z`;
+function sanitizeFrequency(value: unknown): Frequency {
+  const frequency = typeof value === 'string' ? value.toLowerCase().trim() : '';
+  return ['daily', 'weekly', 'monthly', 'once'].includes(frequency)
+    ? (frequency as Frequency)
+    : 'once';
+}
 
-  const parsed = new Date(normalized);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
+function sanitizeRepeatConfig(value: unknown): RepeatConfig | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+
+  const config = value as RepeatConfig;
+  const onDays = Array.isArray(config.onDays)
+    ? config.onDays
+        .map((day) => (typeof day === 'string' ? day.toLowerCase().trim() : ''))
+        .filter((day) => ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].includes(day))
+    : undefined;
+
+  const dayOfMonth =
+    typeof config.dayOfMonth === 'number' && config.dayOfMonth >= 1 && config.dayOfMonth <= 31
+      ? Math.floor(config.dayOfMonth)
+      : undefined;
+
+  if ((onDays && onDays.length > 0) || dayOfMonth) {
+    return { ...(onDays && onDays.length > 0 ? { onDays } : {}), ...(dayOfMonth ? { dayOfMonth } : {}) };
+  }
+
+  return undefined;
+}
+
+function parseTimestamp(value: unknown): Date | null {
+  if (typeof value === 'number') {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  if (typeof value === 'string') {
+    const normalized = value.includes('T') ? value : `${value}T00:00:00.000Z`;
+    const date = new Date(normalized);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  return null;
+}
+
+type SanitizedAction = {
+  actionId: string;
+  title: string;
+  description?: string;
+  frequency: Frequency;
+  repeatConfig?: RepeatConfig;
+  completedDates: Timestamp[];
+  isArchived: boolean;
+  createdAt: Timestamp;
+  deadline: Timestamp;
+};
+
+function sanitizeActions(actions: unknown[] | undefined): SanitizedAction[] {
+  if (!Array.isArray(actions) || actions.length === 0) {
+    return [];
+  }
+
+  const now = new Date();
+
+  return actions.reduce<SanitizedAction[]>((sanitized, rawAction) => {
+    if (!rawAction || typeof rawAction !== 'object') return sanitized;
+
+    const action = rawAction as ActionItem;
+    const title = sanitizeText(action.title);
+    const deadlineDate = parseTimestamp(action.userDeadline);
+    if (!title || !deadlineDate) return sanitized;
+
+    const frequency = sanitizeFrequency(action.frequency);
+    const repeatConfig = sanitizeRepeatConfig(action.repeatConfig);
+    const createdAtDate = parseTimestamp(action.createdAt) ?? now;
+
+    const completedDates = Array.isArray(action.completedDates)
+      ? action.completedDates
+          .map((date) => parseTimestamp(date))
+          .filter((date): date is Date => Boolean(date))
+          .map((date) => Timestamp.fromDate(date))
+      : [];
+
+    const description = sanitizeText(action.description);
+
+    sanitized.push({
+      actionId: sanitizeText(action.actionId) || crypto.randomUUID(),
+      title,
+      description: description || undefined,
+      frequency,
+      repeatConfig,
+      completedDates,
+      isArchived: action.isArchived === true,
+      createdAt: Timestamp.fromDate(createdAtDate),
+      deadline: Timestamp.fromDate(deadlineDate),
+    });
+
+    return sanitized;
+  }, []);
 }
 
 //
@@ -107,11 +200,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'SMART details are incomplete.' }, { status: 400 });
   }
 
-  const actions = body.actions;
-  if (!isValidActions(actions)) {
-    return NextResponse.json({
-      error: 'Each action must have a title and deadline.',
-    }, { status: 400 });
+  const actions = sanitizeActions(body.actions);
+  if (!actions.length) {
+    return NextResponse.json(
+      {
+        error: 'Each action must have a title, suggested cadence, and valid deadline.',
+      },
+      { status: 400 },
+    );
   }
 
   //
@@ -136,21 +232,27 @@ export async function POST(request: Request) {
 
     // Create action documents
     actions.forEach((action) => {
-      const deadlineDate = parseDeadline(action.deadline);
-      if (!deadlineDate) throw new Error('Invalid action deadline.');
+      const actionRef = db.collection('actions').doc(action.actionId);
 
-      const actionRef = db.collection('actions').doc();
-
-      batch.set(actionRef, {
-        title: action.title.trim(),
-        description: action.description.trim(),
-        deadline: Timestamp.fromDate(deadlineDate),
-        status: 'pending',
+      const payload = {
+        title: action.title,
+        description: action.description ?? '',
+        frequency: action.frequency,
+        completedDates: action.completedDates,
+        isArchived: action.isArchived,
         targetId,
         userId,
-        createdAt: FieldValue.serverTimestamp(),
+        createdAt: action.createdAt,
+        userDeadline: action.deadline,
         updatedAt: FieldValue.serverTimestamp(),
-      });
+        status: 'pending',
+      } as Record<string, unknown>;
+
+      if (action.repeatConfig) {
+        payload.repeatConfig = action.repeatConfig;
+      }
+
+      batch.set(actionRef, payload);
     });
 
     await batch.commit();
