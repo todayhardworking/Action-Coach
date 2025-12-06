@@ -242,13 +242,13 @@ export default function ActionsListPage() {
                 <StepCard key={action.id} elevated>
                   <div className="flex flex-col gap-3">
                     <div className="flex items-start justify-between gap-3">
-                      <div className="flex flex-col gap-2">
+                      <div className="flex flex-col gap-3">
                         <div className={styles.badge}>Deadline · {action.deadlineDisplay}</div>
 
                         <button
                           type="button"
                           onClick={() => toggleExpanded(action.id)}
-                          className="text-left text-xl font-semibold text-gray-900"
+                          className="text-left text-2xl font-semibold text-gray-900 leading-tight"
                           aria-expanded={expandedActionIds.has(action.id)}
                           aria-controls={`action-description-${action.id}`}
                         >
