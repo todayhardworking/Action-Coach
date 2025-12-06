@@ -175,6 +175,12 @@ export default function ActionsListPage() {
 
   const isBusy = (actionId: string) => loading || processingId === actionId;
 
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const toggleExpanded = (actionId: string) => {
+    setExpandedId((current) => (current === actionId ? null : actionId));
+  };
+
   return (
     <RequireAuth>
       <div className={styles.surfaceContainer}>
@@ -225,56 +231,60 @@ export default function ActionsListPage() {
                 </StepDescription>
               </StepCard>
             ) : (
-              formattedActions.map((action) => (
-                <StepCard key={action.id} elevated>
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex flex-col gap-2">
-                        <div className={styles.badge}>Deadline · {action.deadlineDisplay}</div>
+              formattedActions.map((action) => {
+                const isExpanded = expandedId === action.id;
 
-                        {/* Title */}
-                        <h2 className="text-xl font-semibold text-gray-900">{action.title}</h2>
-
-                        {/* NEW: Description under Title, smaller font */}
-                        {action.description && (
-                          <p className="text-sm text-gray-600 leading-snug">
-                            {action.description}
-                          </p>
-                        )}
-
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`${styles.chip} ${
-                              action.status === "done" ? "bg-green-50 text-green-800" : ""
-                            }`}
-                          >
-                            {action.status === "done" ? "Completed" : "Pending"}
+                return (
+                  <StepCard key={action.id} elevated>
+                    <div className="flex flex-col gap-3">
+                      <button
+                        type="button"
+                        onClick={() => toggleExpanded(action.id)}
+                        className="flex w-full flex-col gap-2 text-left"
+                        aria-expanded={isExpanded}
+                      >
+                        <div className="flex items-center justify-between text-sm text-gray-700">
+                          <span>Deadline: {action.deadlineDisplay}</span>
+                          <span className="font-medium">Status: {action.status === "done" ? "Done" : "Pending"}</span>
+                        </div>
+                        <div className="flex items-center justify-between gap-3">
+                          <h2 className="text-xl font-semibold text-gray-900">{action.title}</h2>
+                          <span aria-hidden className="text-lg text-gray-700">
+                            {isExpanded ? "▲" : "▼"}
                           </span>
                         </div>
-                      </div>
-                    </div>
+                      </button>
 
-                    <div className={styles.actionsRow}>
-                      <button
-                        type="button"
-                        className={styles.filledButton}
-                        onClick={() => handleMarkDone(action.id)}
-                        disabled={isBusy(action.id) || action.status === "done"}
-                      >
-                        {processingId === action.id && action.status !== "done" ? "Updating..." : "Mark done"}
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.tonalButton}
-                        onClick={() => handleDelete(action.id)}
-                        disabled={isBusy(action.id)}
-                      >
-                        {processingId === action.id && action.status === "done" ? "Removing..." : "Delete"}
-                      </button>
+                      {isExpanded ? (
+                        <div className="flex flex-col gap-3">
+                          <p className="text-sm text-gray-700 leading-snug">
+                            {action.description || "No description provided."}
+                          </p>
+
+                          <div className={styles.actionsRow}>
+                            <button
+                              type="button"
+                              className={styles.filledButton}
+                              onClick={() => handleMarkDone(action.id)}
+                              disabled={isBusy(action.id) || action.status === "done"}
+                            >
+                              {processingId === action.id && action.status !== "done" ? "Updating..." : "Mark done"}
+                            </button>
+                            <button
+                              type="button"
+                              className={styles.tonalButton}
+                              onClick={() => handleDelete(action.id)}
+                              disabled={isBusy(action.id)}
+                            >
+                              {processingId === action.id && action.status === "done" ? "Removing..." : "Delete"}
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
-                  </div>
-                </StepCard>
-              ))
+                  </StepCard>
+                );
+              })
             )}
           </div>
         </div>
