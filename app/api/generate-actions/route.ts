@@ -30,7 +30,6 @@ interface ActionSuggestion {
   description?: string;
   frequency: Frequency;
   repeatConfig?: RepeatConfig;
-  order?: number;
   completedDates: string[];
   isArchived: boolean;
   createdAt: string;
@@ -54,7 +53,6 @@ Return ONLY a JSON object with this exact shape:
         "onDays": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
         "dayOfMonth": number
       },
-      "order": number,
       "completedDates": [timestamp, ...],
       "isArchived": boolean,
       "createdAt": timestamp
@@ -142,7 +140,7 @@ function sanitizeActions(actions: Partial<ActionSuggestion>[], fallbackTargetId:
   const now = new Date().toISOString();
 
   const cleaned = actions
-    .map((action, index) => {
+    .map((action) => {
       const title = sanitizeText(action.title);
       if (!title) return null;
 
@@ -162,7 +160,6 @@ function sanitizeActions(actions: Partial<ActionSuggestion>[], fallbackTargetId:
         targetId: sanitizeText(action.targetId) || fallbackTargetId,
         title,
         frequency,
-        order: typeof action.order === 'number' ? action.order : index + 1,
         completedDates,
         isArchived: Boolean(action.isArchived) && action.isArchived === true ? true : false,
         createdAt,

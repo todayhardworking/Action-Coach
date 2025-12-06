@@ -29,7 +29,6 @@ type ActionItem = {
   description?: string;
   frequency?: Frequency;
   repeatConfig?: RepeatConfig;
-  order?: number;
   completedDates?: (string | number)[];
   isArchived?: boolean;
   createdAt?: string | number;
@@ -115,7 +114,6 @@ type SanitizedAction = {
   description?: string;
   frequency: Frequency;
   repeatConfig?: RepeatConfig;
-  order: number;
   completedDates: Timestamp[];
   isArchived: boolean;
   createdAt: Timestamp;
@@ -129,7 +127,7 @@ function sanitizeActions(actions: unknown[] | undefined): SanitizedAction[] {
 
   const now = new Date();
 
-  return actions.reduce<SanitizedAction[]>((sanitized, rawAction, index) => {
+  return actions.reduce<SanitizedAction[]>((sanitized, rawAction) => {
     if (!rawAction || typeof rawAction !== 'object') return sanitized;
 
     const action = rawAction as ActionItem;
@@ -156,7 +154,6 @@ function sanitizeActions(actions: unknown[] | undefined): SanitizedAction[] {
       description: description || undefined,
       frequency,
       repeatConfig,
-      order: typeof action.order === 'number' ? action.order : index + 1,
       completedDates,
       isArchived: action.isArchived === true,
       createdAt: Timestamp.fromDate(createdAtDate),
@@ -241,7 +238,6 @@ export async function POST(request: Request) {
         title: action.title,
         description: action.description ?? '',
         frequency: action.frequency,
-        order: action.order,
         completedDates: action.completedDates,
         isArchived: action.isArchived,
         targetId,

@@ -20,7 +20,6 @@ export type ActionPlanItem = {
   description?: string;
   frequency: "daily" | "weekly" | "monthly" | "once";
   repeatConfig?: RepeatConfig;
-  order?: number;
   completedDates: string[];
   isArchived: boolean;
   createdAt: string;
@@ -126,9 +125,8 @@ export async function generateActions(goalTitle: string, smart: SmartFields) {
   });
 
   const data = await handleJson<GenerateActionsResponse>(response);
-  return data.actions.map((action, index) => ({
+  return data.actions.map((action) => ({
     ...action,
-    order: action.order ?? index + 1,
     userDeadline: "",
   }));
 }
@@ -152,9 +150,8 @@ export async function generateMoreActions(
   });
 
   const data = await handleJson<GenerateActionsResponse>(response);
-  return data.actions.map((action, index) => ({
+  return data.actions.map((action) => ({
     ...action,
-    order: action.order ?? index + 1,
     userDeadline: "",
   }));
 }
@@ -183,7 +180,6 @@ export async function saveGoalData(payload: SaveGoalPayload) {
         description: action.description?.trim() || "",
         frequency: action.frequency,
         repeatConfig: action.repeatConfig,
-        order: action.order,
         completedDates: action.completedDates,
         isArchived: action.isArchived,
         createdAt: action.createdAt,
