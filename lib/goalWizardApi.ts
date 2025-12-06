@@ -177,9 +177,17 @@ export async function saveGoalData(payload: SaveGoalPayload) {
       goalTitle: payload.goalTitle,
       smart: toApiSmart(payload.smart),
       actions: payload.actions.map((action) => ({
+        actionId: action.actionId,
+        targetId: action.targetId,
         title: action.title,
-        deadline: action.userDeadline?.trim() || "",
         description: action.description?.trim() || "",
+        frequency: action.frequency,
+        repeatConfig: action.repeatConfig,
+        order: action.order,
+        completedDates: action.completedDates,
+        isArchived: action.isArchived,
+        createdAt: action.createdAt,
+        userDeadline: action.userDeadline?.trim() || "",
       })),
     }),
   });
