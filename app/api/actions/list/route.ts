@@ -15,6 +15,8 @@ interface ActionResponse {
   isArchived: boolean;
 }
 
+type ActionRecord = Omit<ActionResponse, "goalTitle">;
+
 export async function POST(request: Request) {
   const auth = await requireAuthenticatedUser(request);
   if ("response" in auth) return auth.response;
@@ -46,7 +48,7 @@ export async function POST(request: Request) {
     const snapshot = await query.get();
 
     // Convert actions to safe response shape
-    const actionsRaw = snapshot.docs.map((doc) => {
+    const actionsRaw: ActionRecord[] = snapshot.docs.map((doc) => {
       const data = doc.data();
 
       // Convert deadline to ISO string
@@ -64,7 +66,7 @@ export async function POST(request: Request) {
         title: data.title || "",
         description: data.description || "",
         deadline,
-        status: data.status === "done" ? "done" : "pending",
+        status: data.status === "done" ? "done" : ("pending" as const),
         targetId: data.targetId || "",
         isArchived: data.isArchived === true,
       };

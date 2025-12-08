@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
-import { v4 as uuid } from "uuid";
+import { randomUUID } from "crypto";
 
 interface SmartBreakdown {
   specific: string;
@@ -151,7 +151,7 @@ function safeParseActions(
       if (!title) return null;
 
       return {
-        actionId: sanitizeText(a.actionId) || uuid(),
+        actionId: sanitizeText(a.actionId) || randomUUID(),
         targetId,
         title,
         description: sanitizeText(a.description) || undefined,
@@ -223,7 +223,7 @@ export async function POST(request: Request) {
     //
     // Call new Responses API
     //
-    const completion = await openai.responses.create({
+    const completion = await (openai as any).responses.create({
       model: "gpt-4o",
       temperature: 0.8,
       response_format: { type: "json_object" },

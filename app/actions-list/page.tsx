@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import dayjs from "dayjs";
+import { auth } from "../../lib/firebaseClient";
 
 interface ActionItem {
   actionId: string;
@@ -31,7 +31,7 @@ export default function ActionsListPage({ params }: { params: { targetId: string
     async function load() {
       setLoading(true);
 
-      const token = await window.firebaseAuth.currentUser?.getIdToken();
+      const token = await auth.currentUser?.getIdToken();
       const res = await fetch("/api/actions/list", {
         method: "POST",
         headers: {
@@ -57,7 +57,7 @@ export default function ActionsListPage({ params }: { params: { targetId: string
   }, [targetId, router]);
 
   async function markDone(actionId: string) {
-    const token = await window.firebaseAuth.currentUser?.getIdToken();
+    const token = await auth.currentUser?.getIdToken();
     await fetch("/api/actions/update", {
       method: "POST",
       headers: {
@@ -73,7 +73,7 @@ export default function ActionsListPage({ params }: { params: { targetId: string
   }
 
   async function deleteAction(actionId: string) {
-    const token = await window.firebaseAuth.currentUser?.getIdToken();
+    const token = await auth.currentUser?.getIdToken();
     await fetch("/api/actions/delete", {
       method: "POST",
       headers: {
@@ -121,7 +121,11 @@ export default function ActionsListPage({ params }: { params: { targetId: string
             <p className="text-gray-600 mt-2">{action.description}</p>
 
             <p className="text-sm text-gray-500 mt-2">
-              Deadline: {dayjs(action.deadline).format("DD MMM YYYY")}
+              Deadline: {new Intl.DateTimeFormat("en", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              }).format(new Date(action.deadline))}
             </p>
 
             <div className="flex gap-3 mt-4">

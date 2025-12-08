@@ -26,7 +26,7 @@ export function cleanRepeatConfig(raw: any) {
   const onDays = Array.isArray(raw.onDays)
     ? raw.onDays
         .map((d: any) => cleanText(d).toLowerCase())
-        .filter((d) => validDays.includes(d))
+        .filter((d: string) => validDays.includes(d))
     : undefined;
 
   const dayOfMonth =
