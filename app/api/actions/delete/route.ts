@@ -1,50 +1,66 @@
-import { NextResponse } from 'next/server';
-import { getAdminDb } from '../../../../lib/firebaseAdmin';
-import { requireAuthenticatedUser } from '../../../../lib/authServer';
+import { NextResponse } from "next/server";
+import { getAdminDb } from "../../../../lib/firebaseAdmin";
+import { requireAuthenticatedUser } from "../../../../lib/authServer";
+import { FieldValue } from "firebase-admin/firestore";
 
-type DeleteActionRequest = {
+interface DeleteActionRequest {
   actionId?: string;
-};
+  mode?: "soft" | "hard"; // default: soft delete (archive)
+}
 
 export async function POST(request: Request) {
-  const authResult = await requireAuthenticatedUser(request);
-  if ('response' in authResult) {
-    return authResult.response;
-  }
+  const auth = await requireAuthenticatedUser(request);
+  if ("response" in auth) return auth.response;
 
   let body: DeleteActionRequest;
-
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 });
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const actionId = typeof body.actionId === 'string' ? body.actionId.trim() : '';
+  const actionId = typeof body.actionId === "string" ? body.actionId.trim() : "";
+  const mode = body.mode === "hard" ? "hard" : "soft"; // fallback to soft
 
   if (!actionId) {
-    return NextResponse.json({ error: 'actionId is required.' }, { status: 400 });
+    return NextResponse.json({ error: "actionId is required" }, { status: 400 });
   }
 
   try {
     const db = getAdminDb();
-    const actionRef = db.collection('actions').doc(actionId);
-    const actionDoc = await actionRef.get();
+    const ref = db.collection("actions").doc(actionId);
+    const snap = await ref.get();
 
-    if (!actionDoc.exists) {
-      return NextResponse.json({ error: 'Action not found.' }, { status: 404 });
+    if (!snap.exists) {
+      return NextResponse.json({ error: "Action not found" }, { status: 404 });
     }
 
-    const data = actionDoc.data();
-    if (data?.userId !== authResult.uid) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const data = snap.data();
+
+    // Ownership verification
+    if (data?.userId !== auth.uid) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await actionRef.delete();
+    // ────────────────────────────────────────────────
+    // HARD DELETE (permanent remove)
+    // ────────────────────────────────────────────────
+    if (mode === "hard") {
+      await ref.delete();
+      return NextResponse.json({ success: true, mode: "hard" });
+    }
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Failed to delete action.', { error });
-    return NextResponse.json({ error: 'Failed to delete action.' }, { status: 500 });
+    // ────────────────────────────────────────────────
+    // SOFT DELETE (archive)
+    // ────────────────────────────────────────────────
+    await ref.update({
+      isArchived: true,
+      updatedAt: FieldValue.serverTimestamp()
+    });
+
+    return NextResponse.json({ success: true, mode: "soft" });
+  } catch (err) {
+    console.error("actions/delete failed:", err);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }
