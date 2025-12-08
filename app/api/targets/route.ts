@@ -16,23 +16,11 @@ interface TargetResponse {
   smart: any;
 }
 
-export async function POST(request: Request) {
-  const auth = await requireAuthenticatedUser(request);
-  if ("response" in auth) return auth.response;
-
-  let body: TargetsListRequest = {};
-  try {
-    body = await request.json();
-  } catch {
-    /* optional body, ignore errors */
-  }
-
-  const includeArchived = body.includeArchived === true;
-
+async function listTargets(uid: string, includeArchived: boolean) {
   try {
     const db = getAdminDb();
 
-    let query = db.collection("targets").where("userId", "==", auth.uid);
+    let query = db.collection("targets").where("userId", "==", uid);
 
     if (!includeArchived) {
       query = query.where("archived", "==", false);
@@ -65,4 +53,30 @@ export async function POST(request: Request) {
     console.error("targets/list failed:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
+}
+
+export async function GET(request: Request) {
+  const auth = await requireAuthenticatedUser(request);
+  if ("response" in auth) return auth.response;
+
+  const url = new URL(request.url);
+  const includeArchived = url.searchParams.get("includeArchived") === "true";
+
+  return listTargets(auth.uid, includeArchived);
+}
+
+export async function POST(request: Request) {
+  const auth = await requireAuthenticatedUser(request);
+  if ("response" in auth) return auth.response;
+
+  let body: TargetsListRequest = {};
+  try {
+    body = await request.json();
+  } catch {
+    /* optional body, ignore errors */
+  }
+
+  const includeArchived = body.includeArchived === true;
+
+  return listTargets(auth.uid, includeArchived);
 }
