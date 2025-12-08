@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { Timestamp, FieldValue } from "firebase-admin/firestore";
 import { getAdminDb } from "../../../lib/firebaseAdmin";
 import { requireAuthenticatedUser } from "../../../lib/authServer";
-import { v4 as uuid } from "uuid";
+import { randomUUID } from "crypto";
 
 // Minimal clean sanitizers
 const text = (v: any) => (typeof v === "string" ? v.trim() : "");
@@ -19,8 +19,8 @@ function sanitizeRepeatConfig(raw: any) {
 
   const onDays = Array.isArray(raw.onDays)
     ? raw.onDays
-        .map((d) => (typeof d === "string" ? d.toLowerCase().trim() : ""))
-        .filter((d) => validDays.includes(d))
+        .map((d: any) => (typeof d === "string" ? d.toLowerCase().trim() : ""))
+        .filter((d: string) => validDays.includes(d))
     : undefined;
 
   const dayOfMonth =
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
   const now = Timestamp.now();
 
   const actions = actionsInput
-    .map((a) => {
+    .map((a: any) => {
       const title = text(a.title);
       if (!title) return null;
 
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
       if (!deadline) return null;
 
       return {
-        actionId: uuid(),
+        actionId: randomUUID(),
         userId,
         targetId: "", // filled after target creation
         title,

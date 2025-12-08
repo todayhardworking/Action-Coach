@@ -94,7 +94,7 @@ export async function POST(request: Request) {
     //
     // Call OpenAI Responses API
     //
-    const completion = await openai.responses.create({
+    const completion = await (openai as any).responses.create({
       model: "gpt-4o",
       temperature: 0.7,
       response_format: { type: "json_object" },
