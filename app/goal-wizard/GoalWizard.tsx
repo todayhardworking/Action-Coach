@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AppBarTop } from "../../components/md3/AppBarTop";
-import { StepDescription } from "../../components/md3/StepDescription";
-import { StepTitle } from "../../components/md3/StepTitle";
-import styles from "../../components/md3/md3.module.css";
+import { AppBarTop } from "@/components/md3/AppBarTop";
+import { StepDescription } from "@/components/md3/StepDescription";
+import { StepTitle } from "@/components/md3/StepTitle";
+import styles from "@/components/md3/md3.module.css";
 import {
   ActionPlanItem,
   SaveGoalPayload,
@@ -14,7 +14,7 @@ import {
   generateQuestions,
   generateSmart,
   saveGoalData,
-} from "../../lib/goalWizardApi";
+} from "@/lib/goalWizardApi";
 import { Step1Goal } from "./steps/Step1Goal";
 import { Step2Questions } from "./steps/Step2Questions";
 import { Step3Smart } from "./steps/Step3Smart";

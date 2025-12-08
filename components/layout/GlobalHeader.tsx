@@ -4,9 +4,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { signOut } from "firebase/auth";
-import { useAuth } from "../auth/AuthProvider";
-import { auth } from "../../lib/firebaseClient";
-import styles from "../md3/md3.module.css";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { auth } from "@/lib/firebaseClient";
+import styles from "@/components/md3/md3.module.css";
 
 type NavigationItem = {
   label: string;

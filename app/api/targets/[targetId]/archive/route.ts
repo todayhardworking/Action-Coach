@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
-import { getAdminDb } from "../../../../../lib/firebaseAdmin";
-import { requireAuthenticatedUser } from "../../../../../lib/authServer";
+import { getAdminDb } from "@/lib/firebaseAdmin";
+import { requireAuthenticatedUser } from "@/lib/authServer";
 
 interface ArchiveRequest {
   archived?: boolean; // true = archive, false = unarchive

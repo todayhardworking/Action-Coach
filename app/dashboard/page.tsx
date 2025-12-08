@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { AppBarTop } from "../../components/md3/AppBarTop";
-import { RequireAuth } from "../../components/auth/RequireAuth";
-import { StepCard } from "../../components/md3/StepCard";
-import { StepDescription } from "../../components/md3/StepDescription";
-import { StepTitle } from "../../components/md3/StepTitle";
-import styles from "../../components/md3/md3.module.css";
+import { AppBarTop } from "@/components/md3/AppBarTop";
+import { RequireAuth } from "@/components/auth/RequireAuth";
+import { StepCard } from "@/components/md3/StepCard";
+import { StepDescription } from "@/components/md3/StepDescription";
+import { StepTitle } from "@/components/md3/StepTitle";
+import styles from "@/components/md3/md3.module.css";
 
 const features = [
   {

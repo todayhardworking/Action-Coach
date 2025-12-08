@@ -1,13 +1,13 @@
 "use client";
 
-import { MD3TextField } from "../../../components/md3/MD3TextField";
-import { NextButton } from "../../../components/md3/NextButton";
-import { StepCard } from "../../../components/md3/StepCard";
-import { StepDescription } from "../../../components/md3/StepDescription";
-import { StepIndicator } from "../../../components/md3/StepIndicator";
-import { StepTitle } from "../../../components/md3/StepTitle";
-import styles from "../../../components/md3/md3.module.css";
-import { ActionPlanItem } from "../../../lib/goalWizardApi";
+import { MD3TextField } from "@/components/md3/MD3TextField";
+import { NextButton } from "@/components/md3/NextButton";
+import { StepCard } from "@/components/md3/StepCard";
+import { StepDescription } from "@/components/md3/StepDescription";
+import { StepIndicator } from "@/components/md3/StepIndicator";
+import { StepTitle } from "@/components/md3/StepTitle";
+import styles from "@/components/md3/md3.module.css";
+import { ActionPlanItem } from "@/lib/goalWizardApi";
 
 export type EditableActionField = "title" | "description" | "userDeadline";
 

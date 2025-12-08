@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { RequireAuth } from "../../components/auth/RequireAuth";
-import { useAuth } from "../../components/auth/AuthProvider";
-import { AppBarTop } from "../../components/md3/AppBarTop";
-import { StepCard } from "../../components/md3/StepCard";
-import { StepDescription } from "../../components/md3/StepDescription";
-import { StepTitle } from "../../components/md3/StepTitle";
-import styles from "../../components/md3/md3.module.css";
-import type { TargetDocument, TargetSmart } from "../../lib/targets";
+import { RequireAuth } from "@/components/auth/RequireAuth";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { AppBarTop } from "@/components/md3/AppBarTop";
+import { StepCard } from "@/components/md3/StepCard";
+import { StepDescription } from "@/components/md3/StepDescription";
+import { StepTitle } from "@/components/md3/StepTitle";
+import styles from "@/components/md3/md3.module.css";
+import type { TargetDocument, TargetSmart } from "@/lib/targets";
 
 type TargetItem = TargetDocument;
 

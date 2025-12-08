@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getAdminDb } from "../../../../lib/firebaseAdmin";
-import { requireAuthenticatedUser } from "../../../../lib/authServer";
+import { getAdminDb } from "@/lib/firebaseAdmin";
+import { requireAuthenticatedUser } from "@/lib/authServer";
 
 interface DeleteRequest {
   mode?: "soft" | "hard"; // default: soft protect

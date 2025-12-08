@@ -1,7 +1,7 @@
 "use client";
 
-import { RequireAuth } from "../../components/auth/RequireAuth";
-import { useAuth } from "../../components/auth/AuthProvider";
+import { RequireAuth } from "@/components/auth/RequireAuth";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { GoalWizard } from "./GoalWizard";
 
 export default function GoalWizardPage() {

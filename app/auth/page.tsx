@@ -3,13 +3,13 @@
 import { FormEvent, Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../lib/firebaseClient";
-import { useAuth } from "../../components/auth/AuthProvider";
-import { StepCard } from "../../components/md3/StepCard";
-import { StepTitle } from "../../components/md3/StepTitle";
-import { StepDescription } from "../../components/md3/StepDescription";
-import { MD3TextField } from "../../components/md3/MD3TextField";
-import md3Styles from "../../components/md3/md3.module.css";
+import { auth } from "@/lib/firebaseClient";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { StepCard } from "@/components/md3/StepCard";
+import { StepTitle } from "@/components/md3/StepTitle";
+import { StepDescription } from "@/components/md3/StepDescription";
+import { MD3TextField } from "@/components/md3/MD3TextField";
+import md3Styles from "@/components/md3/md3.module.css";
 import styles from "./auth.module.css";
 
 type AuthMode = "signin" | "signup";

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import './globals.css';
-import { AuthProvider } from '../components/auth/AuthProvider';
-import { GlobalHeader } from '../components/layout/GlobalHeader';
+import { AuthProvider } from '@/components/auth/AuthProvider';
+import { GlobalHeader } from '@/components/layout/GlobalHeader';
 
 export const metadata = {
   title: 'Action Coach',

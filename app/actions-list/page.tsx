@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "../../lib/firebaseClient";
+import { auth } from "@/lib/firebaseClient";
 
 interface ActionItem {
   actionId: string;
