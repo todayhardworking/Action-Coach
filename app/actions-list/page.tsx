@@ -1,294 +1,149 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { RequireAuth } from "../../components/auth/RequireAuth";
-import { useAuth } from "../../components/auth/AuthProvider";
-import { AppBarTop } from "../../components/md3/AppBarTop";
-import { StepCard } from "../../components/md3/StepCard";
-import { StepDescription } from "../../components/md3/StepDescription";
-import { StepTitle } from "../../components/md3/StepTitle";
-import styles from "../../components/md3/md3.module.css";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import dayjs from "dayjs";
 
-type ActionItem = {
-  id: string;
+interface ActionItem {
+  actionId: string;
   title: string;
-  description: string;   // <-- NEW FIELD
+  description: string;
   deadline: string;
   status: "pending" | "done";
   goalTitle: string;
-};
+  isArchived: boolean;
+}
 
-export default function ActionsListPage() {
-  const { user } = useAuth();
+export default function ActionsListPage({ params }: { params: { targetId: string } }) {
+  const router = useRouter();
+  const { targetId } = params;
+
   const [actions, setActions] = useState<ActionItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [processingId, setProcessingId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [goalTitle, setGoalTitle] = useState("");
 
-  const getAuthHeaders = useCallback(async () => {
-    if (!user) return null;
-
-    const token = await user.getIdToken();
-    return {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    };
-  }, [user]);
-
-  const fetchActions = useCallback(async () => {
-    if (!user) {
-      setActions([]);
-      setLoading(false);
+  useEffect(() => {
+    if (!targetId) {
+      router.push("/");
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    async function load() {
+      setLoading(true);
 
-    try {
-      const headers = await getAuthHeaders();
-      if (!headers) {
-        throw new Error("Missing authentication token.");
-      }
-
-      const response = await fetch("/api/actions/list", {
+      const token = await window.firebaseAuth.currentUser?.getIdToken();
+      const res = await fetch("/api/actions/list", {
         method: "POST",
-        headers,
-        body: JSON.stringify({}),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ targetId }),
       });
 
-      const data = await response.json().catch(() => ({}));
+      const data = await res.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to load actions.");
+      if (data?.actions) {
+        setActions(data.actions);
+        if (data.actions.length > 0) {
+          setGoalTitle(data.actions[0].goalTitle);
+        }
       }
 
-      setActions(Array.isArray(data.actions) ? data.actions : []);
-    } catch (fetchError) {
-      console.error(fetchError);
-      setError(fetchError instanceof Error ? fetchError.message : "Failed to load actions.");
-    } finally {
       setLoading(false);
     }
-  }, [getAuthHeaders, user]);
 
-  useEffect(() => {
-    fetchActions();
-  }, [fetchActions]);
+    load();
+  }, [targetId, router]);
 
-  const handleMarkDone = useCallback(
-    async (actionId: string) => {
-      setProcessingId(actionId);
-      setError(null);
+  async function markDone(actionId: string) {
+    const token = await window.firebaseAuth.currentUser?.getIdToken();
+    await fetch("/api/actions/update", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ actionId, status: "done" }),
+    });
 
-      try {
-        const headers = await getAuthHeaders();
-        if (!headers) {
-          throw new Error("Missing authentication token.");
-        }
+    setActions((prev) =>
+      prev.map((a) => (a.actionId === actionId ? { ...a, status: "done" } : a))
+    );
+  }
 
-        const response = await fetch("/api/actions/update", {
-          method: "POST",
-          headers,
-          body: JSON.stringify({ actionId, status: "done" }),
-        });
+  async function deleteAction(actionId: string) {
+    const token = await window.firebaseAuth.currentUser?.getIdToken();
+    await fetch("/api/actions/delete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ actionId, mode: "soft" }),
+    });
 
-        const data = await response.json().catch(() => ({}));
+    setActions((prev) => prev.filter((a) => a.actionId !== actionId));
+  }
 
-        if (!response.ok) {
-          throw new Error(data.error || "Failed to update action.");
-        }
-
-        await fetchActions();
-      } catch (updateError) {
-        console.error(updateError);
-        setError(updateError instanceof Error ? updateError.message : "Failed to update action.");
-      } finally {
-        setProcessingId(null);
-      }
-    },
-    [fetchActions, getAuthHeaders]
-  );
-
-  const handleDelete = useCallback(
-    async (actionId: string) => {
-      setProcessingId(actionId);
-      setError(null);
-
-      try {
-        const headers = await getAuthHeaders();
-        if (!headers) {
-          throw new Error("Missing authentication token.");
-        }
-
-        const response = await fetch("/api/actions/delete", {
-          method: "POST",
-          headers,
-          body: JSON.stringify({ actionId }),
-        });
-
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-          throw new Error(data.error || "Failed to delete action.");
-        }
-
-        setActions((current) => current.filter((action) => action.id !== actionId));
-      } catch (deleteError) {
-        console.error(deleteError);
-        setError(deleteError instanceof Error ? deleteError.message : "Failed to delete action.");
-      } finally {
-        setProcessingId(null);
-      }
-    },
-    [getAuthHeaders]
-  );
-
-  const formattedActions = useMemo(
-    () =>
-      actions.map((action) => {
-        const date = new Date(action.deadline);
-        const deadlineDisplay = Number.isNaN(date.getTime())
-          ? action.deadline
-          : date.toLocaleDateString();
-
-        return { ...action, deadlineDisplay };
-      }),
-    [actions]
-  );
-
-  const summary = useMemo(() => {
-    const pendingCount = actions.filter((action) => action.status === "pending").length;
-    const doneCount = actions.filter((action) => action.status === "done").length;
-
-    const nextDeadline = actions
-      .map((action) => new Date(action.deadline))
-      .filter((date) => !Number.isNaN(date.getTime()))
-      .sort((a, b) => a.getTime() - b.getTime())[0];
-
-    return {
-      pendingCount,
-      doneCount,
-      nextDeadline: nextDeadline ? nextDeadline.toLocaleDateString() : "—",
-    };
-  }, [actions]);
-
-  const isBusy = (actionId: string) => loading || processingId === actionId;
-
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  const toggleExpanded = (actionId: string) => {
-    setExpandedId((current) => (current === actionId ? null : actionId));
-  };
+  if (loading) {
+    return <div className="p-4 text-center text-gray-500">Loading actions...</div>;
+  }
 
   return (
-    <RequireAuth>
-      <div className={styles.surfaceContainer}>
-        <div className={styles.wizardShell}>
-          <AppBarTop title="Actions" />
+    <div className="p-4 max-w-2xl mx-auto">
+      <h1 className="text-2xl font-bold mb-2">{goalTitle}</h1>
+      <p className="text-gray-600 mb-6">Actions for this goal</p>
 
-          <StepCard>
-            <StepTitle>Your action queue</StepTitle>
-            <StepDescription>
-              Track every step across your goals, mark work as done, and keep your plan up to date.
-            </StepDescription>
-            <div className={`${styles.contentStack} ${styles.topSpacing}`}>
-              <div className={`${styles.statusCard} ${styles.statusSuccess}`}>
-                <div className={styles.statusIcon}>✓</div>
-                <div>
-                  <p className={styles.statusTitle}>Progress overview</p>
-                  <p className={styles.supportText}>
-                    {summary.pendingCount} pending · {summary.doneCount} completed · Next due {summary.nextDeadline}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </StepCard>
-
-          <div className={styles.contentStack}>
-            {error ? (
-              <div className={`${styles.statusCard} ${styles.statusError}`} role="alert">
-                <div className={styles.statusIcon}>!</div>
-                <div>
-                  <p className={styles.statusTitle}>Something went wrong</p>
-                  <p className={styles.supportText}>{error}</p>
-                </div>
-              </div>
-            ) : null}
-
-            {loading ? (
-              <StepCard elevated>
-                <div className="flex items-center gap-3">
-                  <div className={styles.loader} aria-hidden />
-                  <p className={styles.supportText}>Loading your actions...</p>
-                </div>
-              </StepCard>
-            ) : formattedActions.length === 0 ? (
-              <StepCard elevated>
-                <StepTitle>Nothing to do yet</StepTitle>
-                <StepDescription>
-                  Start a new goal in the wizard and we will bring your action steps back here to keep you accountable.
-                </StepDescription>
-              </StepCard>
-            ) : (
-              formattedActions.map((action) => {
-                const isExpanded = expandedId === action.id;
-
-                return (
-                  <StepCard key={action.id} elevated>
-                    <div className="flex flex-col gap-3">
-                      <button
-                        type="button"
-                        onClick={() => toggleExpanded(action.id)}
-                        className="flex w-full flex-col gap-2 text-left"
-                        aria-expanded={isExpanded}
-                      >
-                        <div className="flex items-center justify-between text-sm text-gray-700">
-                          <span>Deadline: {action.deadlineDisplay}</span>
-                          <span className="font-medium">Status: {action.status === "done" ? "Done" : "Pending"}</span>
-                        </div>
-                        <div className="flex items-center justify-between gap-3">
-                          <h2 className="text-xl font-semibold text-gray-900">{action.title}</h2>
-                          <span aria-hidden className="text-lg text-gray-700">
-                            {isExpanded ? "▲" : "▼"}
-                          </span>
-                        </div>
-                      </button>
-
-                      {isExpanded ? (
-                        <div className="flex flex-col gap-3">
-                          <p className="text-sm text-gray-700 leading-snug">
-                            {action.description || "No description provided."}
-                          </p>
-
-                          <div className={styles.actionsRow}>
-                            <button
-                              type="button"
-                              className={styles.filledButton}
-                              onClick={() => handleMarkDone(action.id)}
-                              disabled={isBusy(action.id) || action.status === "done"}
-                            >
-                              {processingId === action.id && action.status !== "done" ? "Updating..." : "Mark done"}
-                            </button>
-                            <button
-                              type="button"
-                              className={styles.tonalButton}
-                              onClick={() => handleDelete(action.id)}
-                              disabled={isBusy(action.id)}
-                            >
-                              {processingId === action.id && action.status === "done" ? "Removing..." : "Delete"}
-                            </button>
-                          </div>
-                        </div>
-                      ) : null}
-                    </div>
-                  </StepCard>
-                );
-              })
-            )}
-          </div>
+      {actions.length === 0 ? (
+        <div className="text-gray-500 text-center mt-8">
+          No actions found for this goal.
         </div>
-      </div>
-    </RequireAuth>
+      ) : (
+        actions.map((action) => (
+          <div
+            key={action.actionId}
+            className="border rounded-xl p-4 mb-4 shadow-sm bg-white"
+          >
+            <div className="flex justify-between items-center">
+              <h2 className="font-semibold text-lg">{action.title}</h2>
+              <span
+                className={`px-2 py-1 rounded text-sm ${
+                  action.status === "done"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-yellow-100 text-yellow-700"
+                }`}
+              >
+                {action.status === "done" ? "Done" : "Pending"}
+              </span>
+            </div>
+
+            <p className="text-gray-600 mt-2">{action.description}</p>
+
+            <p className="text-sm text-gray-500 mt-2">
+              Deadline: {dayjs(action.deadline).format("DD MMM YYYY")}
+            </p>
+
+            <div className="flex gap-3 mt-4">
+              {action.status !== "done" && (
+                <button
+                  onClick={() => markDone(action.actionId)}
+                  className="px-4 py-2 rounded bg-blue-600 text-white"
+                >
+                  Mark Done
+                </button>
+              )}
+
+              <button
+                onClick={() => deleteAction(action.actionId)}
+                className="px-4 py-2 rounded bg-red-600 text-white"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
   );
 }
