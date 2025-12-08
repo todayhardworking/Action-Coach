@@ -99,6 +99,44 @@ export function GlobalHeader() {
           type: "link",
         },
         {
+          label: "API Tester",
+          href: "/api-tester",
+          icon: (
+            <svg
+              className={styles.iconGlyph}
+              viewBox="0 0 24 24"
+              role="img"
+              aria-hidden
+              focusable="false"
+            >
+              <rect
+                x="3.5"
+                y="5"
+                width="17"
+                height="14"
+                rx="2"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                fill="none"
+              />
+              <path
+                d="M7.5 12 10 14.5 7.5 17"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M11.5 17h4"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+            </svg>
+          ),
+          type: "link",
+        },
+        {
           label: "Logout",
           icon: (
             <svg className={styles.iconGlyph} viewBox="0 0 24 24" role="img" aria-hidden focusable="false">
