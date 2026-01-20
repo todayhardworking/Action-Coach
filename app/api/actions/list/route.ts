@@ -1,103 +1,105 @@
-import { NextResponse } from 'next/server';
-import { Timestamp } from 'firebase-admin/firestore';
-import { getAdminDb } from '../../../../lib/firebaseAdmin';
-import { requireAuthenticatedUser } from '../../../../lib/authServer';
-import { toSafeDate } from '../../../../lib/firestoreTimestamps';
+import { NextResponse } from "next/server";
+import { Timestamp } from "firebase-admin/firestore";
+import { getAdminDb } from "../../../../lib/firebaseAdmin";
+import { requireAuthenticatedUser } from "../../../../lib/authServer";
 
-type ListActionsRequest = {
-  userId?: string;
-  targetId?: string;
-};
-
-type ActionResponse = {
-  id: string;
+// Types returned to frontend
+interface ActionResponse {
+  actionId: string;
   title: string;
-  description: string;  // <-- NEW
+  description: string;
   deadline: string;
-  status: 'pending' | 'done';
+  status: "pending" | "done";
   targetId: string;
   goalTitle: string;
-};
+  isArchived: boolean;
+}
+
+type ActionRecord = Omit<ActionResponse, "goalTitle">;
 
 export async function POST(request: Request) {
-  const authResult = await requireAuthenticatedUser(request);
-  if ('response' in authResult) {
-    return authResult.response;
-  }
+  const auth = await requireAuthenticatedUser(request);
+  if ("response" in auth) return auth.response;
 
-  let body: ListActionsRequest;
-
+  let body: any;
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 });
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const targetId = typeof body.targetId === 'string' ? body.targetId.trim() : '';
+  const userId = auth.uid;
+  const targetId = typeof body.targetId === "string" ? body.targetId.trim() : "";
 
   try {
     const db = getAdminDb();
-    let query = db.collection('actions').where('userId', '==', authResult.uid);
 
+    // Base query
+    let query = db.collection("actions").where("userId", "==", userId);
+
+    // If targetId provided → filter by it
     if (targetId) {
-      query = query.where('targetId', '==', targetId);
+      query = query.where("targetId", "==", targetId);
     }
 
-    query = query.orderBy('deadline', 'asc');
+    // Order by upcoming deadlines
+    query = query.orderBy("deadline", "asc");
 
     const snapshot = await query.get();
 
-    const actions: Omit<ActionResponse, 'goalTitle'>[] = snapshot.docs.map((doc) => {
+    // Convert actions to safe response shape
+    const actionsRaw: ActionRecord[] = snapshot.docs.map((doc) => {
       const data = doc.data();
 
-      const deadlineValue = data.deadline;
-      let deadline = '';
-
-      if (deadlineValue instanceof Timestamp) {
-        deadline = deadlineValue.toDate().toISOString();
-      } else if (typeof deadlineValue === 'string') {
-        deadline = deadlineValue;
-      } else {
-        const deadlineDate = toSafeDate(deadlineValue);
-        deadline = deadlineDate ? deadlineDate.toISOString() : '';
+      // Convert deadline to ISO string
+      let deadline = "";
+      if (data.deadline instanceof Timestamp) {
+        deadline = data.deadline.toDate().toISOString();
+      } else if (typeof data.deadline === "string") {
+        deadline = new Date(data.deadline).toISOString();
       }
 
+      const actionId = data.actionId || doc.id;
+
       return {
-        id: doc.id,
-        title: typeof data.title === 'string' ? data.title : '',
-        description:
-          typeof data.description === 'string' ? data.description : '', // <-- NEW FIELD
+        actionId,
+        title: data.title || "",
+        description: data.description || "",
         deadline,
-        status: data.status === 'done' ? 'done' : 'pending',
-        targetId: typeof data.targetId === 'string' ? data.targetId : '',
+        status: data.status === "done" ? "done" : ("pending" as const),
+        targetId: data.targetId || "",
+        isArchived: data.isArchived === true,
       };
     });
 
-    const uniqueTargetIds = Array.from(new Set(actions.map((action) => action.targetId).filter(Boolean)));
+    // Collect unique targetIds for lookup
+    const uniqueTargetIds = Array.from(
+      new Set(actionsRaw.map((a) => a.targetId).filter(Boolean))
+    );
 
+    // Fetch related target titles
     const targets = await Promise.all(
-      uniqueTargetIds.map(async (targetId) => {
-        const targetDoc = await db.collection('targets').doc(targetId).get();
-        const data = targetDoc.data();
-
-        const title = data && typeof data.title === 'string' ? data.title : '';
-        return [targetId, title] as const;
+      uniqueTargetIds.map(async (tid) => {
+        const ref = db.collection("targets").doc(tid);
+        const doc = await ref.get();
+        const title = doc.exists && typeof doc.data()?.title === "string"
+          ? doc.data()!.title
+          : "";
+        return [tid, title] as const;
       })
     );
 
-    const targetTitleMap = new Map<string, string>(targets);
+    const targetMap = new Map(targets);
 
-    const actionsWithGoals: ActionResponse[] = actions.map((action) => ({
-      ...action,
-      goalTitle: targetTitleMap.get(action.targetId) ?? '',
+    // Final response with goalTitle included
+    const actions: ActionResponse[] = actionsRaw.map((a) => ({
+      ...a,
+      goalTitle: targetMap.get(a.targetId) || ""
     }));
 
-    return NextResponse.json({ actions: actionsWithGoals });
-  } catch (error) {
-    console.error('Failed to fetch actions.', { error });
-    return NextResponse.json(
-      { error: 'Failed to fetch actions.' },
-      { status: 500 }
-    );
+    return NextResponse.json({ actions });
+  } catch (err) {
+    console.error("actions/list failed:", err);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }

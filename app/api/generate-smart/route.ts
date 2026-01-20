@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { NextResponse } from "next/server";
+import OpenAI from "openai";
 
 interface GenerateSmartRequest {
   userInput?: string;
@@ -19,10 +19,17 @@ interface GenerateSmartResponse {
   smart: SmartBreakdown;
 }
 
-const systemPrompt = `You are a friendly goal-setting coach.
-Return ONLY a JSON object with these exact fields:
+//
+// ─────────────────────────────────────────
+// SYSTEM PROMPT (Compact & JSON-Stable)
+// ─────────────────────────────────────────
+//
+const systemPrompt = `
+You generate a simple SMART breakdown based on the user’s goal.
+Return ONLY a JSON object:
+
 {
-  "goalTitle": string (6-12 words),
+  "goalTitle": string,
   "smart": {
     "specific": string,
     "measurable": string,
@@ -31,122 +38,137 @@ Return ONLY a JSON object with these exact fields:
     "timeBased": string
   }
 }
-Requirements:
-- Use a warm, conversational tone.
-- Reflect the user's goal or problem and any clarifying answers.
-- Each SMART field should be 1-2 sentences.
-- Do not suggest actions or solutions yet.
-- Do not add extra fields or commentary.
-- Ensure JSON is valid.`;
 
-function sanitizeText(value: unknown): string {
-  return typeof value === 'string' ? value.trim() : '';
-}
+Rules:
+- goalTitle must be 6–12 words.
+- Each SMART field must be 1–2 friendly sentences.
+- No solutions or action steps.
+- No extra fields.
+- JSON must be valid.
+`;
+
+//
+// ─────────────────────────────────────────
+// Sanitizers
+// ─────────────────────────────────────────
+//
+const sanitizeText = (v: unknown) =>
+  typeof v === "string" ? v.trim() : "";
 
 function sanitizeAnswers(value: unknown): string[] {
-  if (!Array.isArray(value)) {
-    return [];
-  }
+  if (!Array.isArray(value)) return [];
   return value
-    .filter((item): item is string => typeof item === 'string')
+    .filter((item): item is string => typeof item === "string")
     .map((item) => item.trim())
     .filter((item) => item.length > 0)
     .slice(0, 3);
 }
 
-function sanitizeSmart(smart: Partial<SmartBreakdown>): SmartBreakdown | null {
-  const specific = sanitizeText(smart.specific);
-  const measurable = sanitizeText(smart.measurable);
-  const achievable = sanitizeText(smart.achievable);
-  const relevant = sanitizeText(smart.relevant);
-  const timeBased = sanitizeText(smart.timeBased);
+function sanitizeSmart(obj: any): SmartBreakdown | null {
+  if (!obj || typeof obj !== "object") return null;
 
-  if (specific && measurable && achievable && relevant && timeBased) {
-    return { specific, measurable, achievable, relevant, timeBased };
+  const fields = [
+    "specific",
+    "measurable",
+    "achievable",
+    "relevant",
+    "timeBased"
+  ] as const;
+
+  const cleaned: any = {};
+
+  for (const f of fields) {
+    const val = sanitizeText(obj[f]);
+    if (!val) return null;
+    cleaned[f] = val;
   }
 
-  return null;
+  return cleaned as SmartBreakdown;
 }
 
-function extractSmart(content: string): GenerateSmartResponse | null {
-  const attemptParse = (text: string): GenerateSmartResponse | null => {
-    try {
-      const parsed = JSON.parse(text) as Partial<GenerateSmartResponse>;
-      const goalTitle = sanitizeText(parsed.goalTitle);
-      const smart = parsed.smart ? sanitizeSmart(parsed.smart) : null;
-
-      if (goalTitle && smart) {
-        return { goalTitle, smart };
-      }
-    } catch {
-      // Ignore parse errors and continue with fallback parsing strategies.
-    }
+//
+// ─────────────────────────────────────────
+// Safe JSON extractor (no regex)
+// ─────────────────────────────────────────
+//
+function safeParseSmart(raw: string): GenerateSmartResponse | null {
+  let parsed: any;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
     return null;
-  };
-
-  const direct = attemptParse(content);
-  if (direct) {
-    return direct;
   }
 
-  const jsonMatch = content.match(/\{[\s\S]*\}/);
-  if (jsonMatch) {
-    const embedded = attemptParse(jsonMatch[0]);
-    if (embedded) {
-      return embedded;
-    }
-  }
+  const goalTitle = sanitizeText(parsed.goalTitle);
+  const smart = sanitizeSmart(parsed.smart);
 
-  return null;
+  if (!goalTitle || !smart) return null;
+
+  return { goalTitle, smart };
 }
 
+//
+// ─────────────────────────────────────────
+// MAIN API ROUTE
+// ─────────────────────────────────────────
+//
 export async function POST(request: Request) {
   let body: GenerateSmartRequest;
 
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 });
+    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
   const userInput = sanitizeText(body.userInput);
   const answers = sanitizeAnswers(body.answers);
 
   if (!userInput) {
-    return NextResponse.json({ error: 'userInput is required.' }, { status: 400 });
+    return NextResponse.json({ error: "userInput is required." }, { status: 400 });
   }
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: 'OpenAI configuration is missing.' }, { status: 500 });
+    return NextResponse.json({ error: "Missing OpenAI API key." }, { status: 500 });
   }
 
   const openai = new OpenAI({ apiKey });
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+    //
+    // Call new Responses API
+    //
+    const completion = await (openai as any).responses.create({
+      model: "gpt-4o",
       temperature: 0.7,
-      response_format: { type: 'json_object' },
+      response_format: { type: "json_object" },
       messages: [
-        { role: 'system', content: systemPrompt },
+        { role: "system", content: systemPrompt },
         {
-          role: 'user',
-          content: `Goal or problem: "${userInput}"\nClarifying answers: ${answers.length > 0 ? answers.join(' | ') : 'None provided'}.\nGenerate the SMART breakdown as instructed.`,
-        },
-      ],
+          role: "user",
+          content: `
+User goal: "${userInput}"
+Clarifying answers: ${answers.length ? answers.join(" | ") : "None"}
+Generate the SMART breakdown only.
+          `
+        }
+      ]
     });
 
-    const content = completion.choices[0]?.message?.content ?? '';
-    const parsed = extractSmart(content);
+    const raw = completion.output_text ?? "";
+    const parsed = safeParseSmart(raw);
 
     if (!parsed) {
-      throw new Error('Unable to parse SMART breakdown from the AI response.');
+      throw new Error("Failed to parse SMART JSON response.");
     }
 
     return NextResponse.json(parsed satisfies GenerateSmartResponse);
-  } catch (error) {
-    console.error('Failed to generate SMART breakdown.', { error });
-    return NextResponse.json({ error: 'Failed to generate SMART breakdown.' }, { status: 500 });
+  } catch (err) {
+    console.error("Failed to generate SMART breakdown:", err);
+    return NextResponse.json(
+      { error: "Failed to generate SMART breakdown." },
+      { status: 500 }
+    );
   }
 }
